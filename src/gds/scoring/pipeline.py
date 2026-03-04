@@ -67,6 +67,21 @@ def run_ranking_pipeline(
         metadata = {"predictions": predictions}
         labels = labels_np.astype(int).tolist()
         sample_ids = sample_ids_np.astype(int).tolist()
+    elif method == "semantic_dedup":
+        labels = []
+        sample_ids = []
+        embeddings: list[list[float]] = []
+        total_batches = len(ranking_loader) if hasattr(ranking_loader, "__len__") else None
+        for x, y, sid in tqdm(
+            ranking_loader,
+            desc=f"{method} ranking batches",
+            total=total_batches,
+        ):
+            labels.extend(y.numpy().astype(int).tolist())
+            sample_ids.extend(sid.numpy().astype(int).tolist())
+            flat = x.reshape(x.shape[0], -1).numpy().astype("float32")
+            embeddings.extend(flat.tolist())
+        metadata = {"embeddings": embeddings}
     else:
         labels = []
         sample_ids = []

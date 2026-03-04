@@ -6,6 +6,7 @@ MNIST-first scaffold for data-selection experiments with sample ranking, subset 
 
 - `error_rate_ensemble` ranking using 6 pretrained torchvision models.
 - `random` ranking baseline.
+- `semantic_dedup` ranking (MinHash over vectorized image representations) to remove near-duplicates first.
 - Percentile-based easiest-sample removal (`0..60`, step `5`).
 - Lightning training on each subset and 3 fixed seeds (configurable model).
 - Aggregation and plots:
@@ -41,6 +42,10 @@ python scripts/03_train_resnet18_grid.py --method error_rate_ensemble
 python scripts/01_rank_samples.py --method random
 python scripts/02_build_subsets.py --method random
 python scripts/03_train_resnet18_grid.py --method random
+
+python scripts/01_rank_samples.py --method semantic_dedup
+python scripts/02_build_subsets.py --method semantic_dedup
+python scripts/03_train_resnet18_grid.py --method semantic_dedup
 
 python scripts/04_aggregate_and_plot.py
 ```
