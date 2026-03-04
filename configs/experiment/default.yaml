@@ -1,0 +1,56 @@
+project:
+  name: geometry-data-selection-mnist
+
+paths:
+  data_dir: data
+  artifacts_dir: artifacts
+
+dataset:
+  name: mnist
+  split_seed: 42
+  train_size: 50000
+  val_size: 10000
+  num_classes: 10
+  image_size: 224
+
+scoring:
+  methods:
+    - error_rate_ensemble
+    - random
+  random_seed: 777
+  pretrained_models:
+    - resnet18
+    - resnet34
+    - resnet50
+    - densenet121
+    - mobilenet_v3_large
+    - efficientnet_b0
+  class_head_mode: first10
+  batch_size: 128
+  num_workers: 4
+
+subsets:
+  min_percent: 0
+  max_percent: 60
+  step_percent: 5
+
+training:
+  model: mobilenet_v3_small
+  deterministic: false
+  seeds:
+    - 101
+#    - 202
+#    - 303
+  max_epochs: 10
+  early_stopping_patience: 3
+  batch_size: 128
+  num_workers: 4
+  lr: 0.001
+  weight_decay: 0.0001
+  accelerator: auto
+  devices: 1
+  deterministic: warn
+
+analysis:
+  primary_metric: accuracy
+  plot_dpi: 150
