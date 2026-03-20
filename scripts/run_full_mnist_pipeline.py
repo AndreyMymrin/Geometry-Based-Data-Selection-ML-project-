@@ -20,7 +20,7 @@ def main() -> None:
     parser.add_argument("--config", type=str, default="configs/experiment/default.yaml")
     args = parser.parse_args()
 
-    methods = ["error_rate_ensemble", "random"]
+    methods = ["error_rate_ensemble", "intrinsic_dimensionality_twonn", "random"]
     stage_plan: list[tuple[str, list[str]]] = []
     for method in methods:
         stage_plan.append(

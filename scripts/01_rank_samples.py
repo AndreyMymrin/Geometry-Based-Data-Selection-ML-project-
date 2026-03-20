@@ -25,7 +25,7 @@ def main() -> None:
     artifacts_dir = Path(cfg["paths"]["artifacts_dir"])
     method = args.method
 
-    ranking_df = run_ranking_pipeline(
+    ranking_df, pipeline_metadata = run_ranking_pipeline(
         data_dir=data_dir,
         artifacts_dir=artifacts_dir,
         val_size=int(cfg["dataset"]["val_size"]),
@@ -45,6 +45,7 @@ def main() -> None:
         "num_samples": int(len(ranking_df)),
         "config_path": str(args.config),
     }
+    metadata.update(pipeline_metadata)
     parquet_path, _, _ = save_ranking_artifacts(
         ranking_df=ranking_df,
         output_dir=output_dir,
