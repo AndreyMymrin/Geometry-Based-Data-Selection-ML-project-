@@ -5,6 +5,7 @@ MNIST-first scaffold for data-selection experiments with sample ranking, subset 
 ## What is implemented
 
 - `error_rate_ensemble` ranking using 6 pretrained torchvision models.
+- `effective_rank` ranking using ensemble accuracy (complement of error rate).
 - `random` ranking baseline.
 - Percentile-based easiest-sample removal (`0..60`, step `5`).
 - Lightning training on each subset and 3 fixed seeds (configurable model).
@@ -37,6 +38,10 @@ Run stage-by-stage:
 python scripts/01_rank_samples.py --method error_rate_ensemble
 python scripts/02_build_subsets.py --method error_rate_ensemble
 python scripts/03_train_resnet18_grid.py --method error_rate_ensemble
+
+python scripts/01_rank_samples.py --method effective_rank
+python scripts/02_build_subsets.py --method effective_rank
+python scripts/03_train_resnet18_grid.py --method effective_rank
 
 python scripts/01_rank_samples.py --method random
 python scripts/02_build_subsets.py --method random

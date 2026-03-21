@@ -55,7 +55,7 @@ def run_ranking_pipeline(
     metadata = None
     labels: list[int]
     sample_ids: list[int]
-    if method == "error_rate_ensemble":
+    if method in ("error_rate_ensemble", "effective_rank"):
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         predictions, labels_np, sample_ids_np = run_pretrained_predictions(
             model_names=model_names,
