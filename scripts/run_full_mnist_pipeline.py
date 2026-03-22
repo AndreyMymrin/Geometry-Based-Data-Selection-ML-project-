@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from tqdm.auto import tqdm
-
+from gds.common.config import load_config 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -20,38 +20,31 @@ def main() -> None:
     parser.add_argument("--config", type=str, default="configs/experiment/default.yaml")
     args = parser.parse_args()
 
-    methods = ["error_rate_ensemble", "random"]
+    cfg = load_config(args.config)                    # добавить
+    methods = list(cfg["scoring"]["methods"])         # изменить
+
     stage_plan: list[tuple[str, list[str]]] = []
     for method in methods:
-        stage_plan.append(
-            (
-                f"{method}: rank",
-                [sys.executable, "scripts/01_rank_samples.py", "--config", args.config, "--method", method],
-            )
-        )
-        stage_plan.append(
-            (
-                f"{method}: subsets",
-                [sys.executable, "scripts/02_build_subsets.py", "--config", args.config, "--method", method],
-            )
-        )
-        stage_plan.append(
-            (
-                f"{method}: train",
-                [sys.executable, "scripts/03_train_resnet18_grid.py", "--config", args.config, "--method", method],
-            )
-        )
-    stage_plan.append(
-        (
-            "aggregate+plot",
-            [sys.executable, "scripts/04_aggregate_and_plot.py", "--config", args.config],
-        )
-    )
+        stage_plan.append((
+            f"{method}: rank",
+            [sys.executable, "scripts/01_rank_samples.py", "--config", args.config, "--method", method],
+        ))
+        stage_plan.append((
+            f"{method}: subsets",
+            [sys.executable, "scripts/02_build_subsets.py", "--config", args.config, "--method", method],
+        ))
+        stage_plan.append((
+            f"{method}: train",
+            [sys.executable, "scripts/03_train_resnet18_grid.py", "--config", args.config, "--method", method],
+        ))
+    stage_plan.append((
+        "aggregate+plot",
+        [sys.executable, "scripts/04_aggregate_and_plot.py", "--config", args.config],
+    ))
 
     for stage_name, stage_cmd in tqdm(stage_plan, desc="Pipeline stages"):
         print(f"[stage] {stage_name}")
         run_step(stage_cmd)
-
 
 if __name__ == "__main__":
     main()

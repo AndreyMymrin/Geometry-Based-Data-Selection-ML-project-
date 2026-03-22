@@ -1,0 +1,5 @@
+lr: 0.001
+max_epochs: 10
+model_name: mobilenet_v3_small
+num_classes: 10
+weight_decay: 0.0001
