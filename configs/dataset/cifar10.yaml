@@ -1,0 +1,7 @@
+name: cifar10
+split_seed: 42
+train_size: 40000
+val_size: 10000
+num_classes: 10
+in_channels: 3
+image_size: 32

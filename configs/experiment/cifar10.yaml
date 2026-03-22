@@ -1,34 +1,28 @@
 project:
-  name: geometry-data-selection-mnist
+  name: geometry-data-selection-cifar10
 
 paths:
   data_dir: data
-  artifacts_dir: artifacts
+  artifacts_dir: artifacts_cifar10
 
 dataset:
-  name: mnist
+  name: cifar10
   split_seed: 42
-  train_size: 50000
+  train_size: 40000
   val_size: 10000
   num_classes: 10
-  in_channels: 1
-  image_size: 28
+  in_channels: 3
+  image_size: 32
 
 scoring:
   methods:
-    - forgetting_events
     - effective_rank
-    - intrinsic_dimensionality_twonn
     - random
   random_seed: 777
-  model: simple_cnn
-  num_epochs: 10
+  model: resnet18
+  num_epochs: 5
   seeds:
     - 42
-    - 123
-    - 456
-    - 789
-    - 1024
   lr: 0.01
   momentum: 0.9
   weight_decay: 0.0005
@@ -40,13 +34,11 @@ subsets:
   percentiles: [0, 30, 70, 90]
 
 training:
-  model: simple_cnn
+  model: resnet18
   seeds:
     - 101
-    - 202
-    - 303
-  max_epochs: 10
-  early_stopping_patience: 3
+  max_epochs: 15
+  early_stopping_patience: 5
   batch_size: 128
   num_workers: 4
   lr: 0.001

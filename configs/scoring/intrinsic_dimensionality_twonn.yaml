@@ -1,0 +1,12 @@
+method: intrinsic_dimensionality_twonn
+random_seed: 777
+model: simple_cnn
+num_epochs: 10
+seeds:
+  - 42
+  - 123
+  - 456
+  - 789
+  - 1024
+batch_size: 128
+num_workers: 4

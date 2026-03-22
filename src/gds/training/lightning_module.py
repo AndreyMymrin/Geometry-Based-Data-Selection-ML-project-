@@ -16,11 +16,14 @@ class ResNet18Classifier(L.LightningModule):
         lr: float = 1e-3,
         weight_decay: float = 1e-4,
         max_epochs: int = 20,
+        in_channels: int = 1,
     ) -> None:
         super().__init__()
         self.save_hyperparameters()
 
-        self.model = _build_classifier(model_name=model_name, num_classes=num_classes)
+        self.model = _build_classifier(
+            model_name=model_name, num_classes=num_classes, in_channels=in_channels
+        )
         self.criterion = nn.CrossEntropyLoss()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -51,20 +54,78 @@ class ResNet18Classifier(L.LightningModule):
         return {"optimizer": optimizer, "lr_scheduler": scheduler}
 
 
-def _build_classifier(model_name: str, num_classes: int) -> nn.Module:
+class NanoGPTLightning(L.LightningModule):
+    """Lightning wrapper for character-level nanoGPT on TinyShakespeare."""
+
+    def __init__(
+        self,
+        vocab_size: int = 65,
+        block_size: int = 256,
+        n_layer: int = 6,
+        n_head: int = 6,
+        n_embd: int = 384,
+        dropout: float = 0.2,
+        lr: float = 1e-3,
+        weight_decay: float = 1e-2,
+        max_epochs: int = 20,
+    ) -> None:
+        super().__init__()
+        self.save_hyperparameters()
+
+        from gds.models.nano_gpt import NanoGPT
+
+        self.model = NanoGPT(
+            vocab_size=vocab_size,
+            block_size=block_size,
+            n_layer=n_layer,
+            n_head=n_head,
+            n_embd=n_embd,
+            dropout=dropout,
+        )
+        self.criterion = nn.CrossEntropyLoss()
+
+    def forward(self, idx: torch.Tensor) -> torch.Tensor:
+        return self.model(idx)
+
+    def _shared_step(self, batch: tuple, stage: str) -> torch.Tensor:
+        x, y, _ = batch
+        logits = self(x)
+        loss = self.criterion(
+            logits.view(-1, self.hparams.vocab_size), y.view(-1)
+        )
+        self.log(f"{stage}_loss", loss, on_epoch=True, prog_bar=(stage != "train"))
+        return loss
+
+    def training_step(self, batch: tuple, batch_idx: int) -> torch.Tensor:
+        return self._shared_step(batch, stage="train")
+
+    def validation_step(self, batch: tuple, batch_idx: int) -> torch.Tensor:
+        return self._shared_step(batch, stage="val")
+
+    def test_step(self, batch: tuple, batch_idx: int) -> torch.Tensor:
+        return self._shared_step(batch, stage="test")
+
+    def configure_optimizers(self) -> dict:
+        optimizer = AdamW(self.parameters(), lr=self.hparams.lr, weight_decay=self.hparams.weight_decay)
+        scheduler = CosineAnnealingLR(optimizer, T_max=self.hparams.max_epochs)
+        return {"optimizer": optimizer, "lr_scheduler": scheduler}
+
+
+def _build_classifier(
+    model_name: str, num_classes: int, in_channels: int = 1
+) -> nn.Module:
+    if model_name == "simple_cnn":
+        from gds.models.simple_cnn import SimpleCNN
+        return SimpleCNN(num_classes=num_classes, in_channels=in_channels)
     if model_name == "resnet18":
         model = models.resnet18(weights=None)
+        if in_channels != 3:
+            model.conv1 = nn.Conv2d(
+                in_channels, 64, kernel_size=7, stride=2, padding=3, bias=False
+            )
         model.fc = nn.Linear(model.fc.in_features, num_classes)
-        return model
-    if model_name == "alexnet":
-        model = models.alexnet(weights=None)
-        model.classifier[6] = nn.Linear(model.classifier[6].in_features, num_classes)
-        return model
-    if model_name == "mobilenet_v3_small":
-        model = models.mobilenet_v3_small(weights=None)
-        model.classifier[3] = nn.Linear(model.classifier[3].in_features, num_classes)
         return model
     raise ValueError(
         f"Unsupported training model '{model_name}'. "
-        "Supported: resnet18, alexnet, mobilenet_v3_small."
+        "Supported: simple_cnn, resnet18."
     )

@@ -28,11 +28,15 @@ def main() -> None:
         raise FileNotFoundError(f"Ranking file not found: {ranking_path}")
     ranking_df = pd.read_parquet(ranking_path)
 
-    percentiles = generate_percentiles(
-        min_percent=int(cfg["subsets"]["min_percent"]),
-        max_percent=int(cfg["subsets"]["max_percent"]),
-        step_percent=int(cfg["subsets"]["step_percent"]),
-    )
+    subsets_cfg = cfg["subsets"]
+    if "percentiles" in subsets_cfg:
+        percentiles = [int(p) for p in subsets_cfg["percentiles"]]
+    else:
+        percentiles = generate_percentiles(
+            min_percent=int(subsets_cfg["min_percent"]),
+            max_percent=int(subsets_cfg["max_percent"]),
+            step_percent=int(subsets_cfg["step_percent"]),
+        )
     subsets = build_subsets_from_ranking(
         ranking_df=ranking_df,
         method=args.method,

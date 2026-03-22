@@ -1,0 +1,5 @@
+name: tiny_shakespeare
+type: text
+block_size: 128
+val_fraction: 0.1
+split_seed: 42

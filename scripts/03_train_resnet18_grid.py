@@ -14,7 +14,7 @@ if str(SRC_DIR) not in sys.path:
 
 from gds.common.config import load_config
 from gds.common.io import read_json, write_json
-from gds.data.mnist import load_or_create_split
+from gds.data.datasets import load_or_create_split
 from gds.training.runner import run_training
 
 
@@ -48,12 +48,35 @@ def main() -> None:
     data_dir = Path(paths_cfg["data_dir"])
     method = args.method
 
-    split = load_or_create_split(
-        data_dir=data_dir,
-        split_file=artifacts_dir / "splits" / f"mnist_split_seed{int(dataset_cfg['split_seed'])}.json",
-        val_size=int(dataset_cfg["val_size"]),
-        seed=int(dataset_cfg["split_seed"]),
-    )
+    dataset_name = dataset_cfg.get("name", "mnist")
+    is_text = dataset_cfg.get("type", "image") == "text"
+    in_channels = int(dataset_cfg.get("in_channels", 1))
+    num_classes = int(dataset_cfg.get("num_classes", 10))
+
+    # Load or create train/val split
+    vocab_size = None
+    if is_text:
+        from gds.data.tiny_shakespeare import load_or_create_text_split
+        block_size = int(dataset_cfg.get("block_size", 128))
+        val_fraction = float(dataset_cfg.get("val_fraction", 0.1))
+        split_file = artifacts_dir / "splits" / f"tiny_shakespeare_split_seed{int(dataset_cfg['split_seed'])}.json"
+        split, chunks, stoi, itos = load_or_create_text_split(
+            data_dir=data_dir,
+            split_file=split_file,
+            block_size=block_size,
+            val_fraction=val_fraction,
+            seed=int(dataset_cfg["split_seed"]),
+        )
+        vocab_size = len(stoi)
+    else:
+        split_file = artifacts_dir / "splits" / f"{dataset_name}_split_seed{int(dataset_cfg['split_seed'])}.json"
+        split = load_or_create_split(
+            data_dir=data_dir,
+            split_file=split_file,
+            dataset_name=dataset_name,
+            val_size=int(dataset_cfg["val_size"]),
+            seed=int(dataset_cfg["split_seed"]),
+        )
 
     subsets_dir = artifacts_dir / "subsets" / method
     subset_files = sorted(subsets_dir.glob("p*.json"))
@@ -77,12 +100,11 @@ def main() -> None:
                 train_ids=train_ids,
                 val_ids=split.val_ids,
                 seed=int(seed),
-                model_name=str(training_cfg.get("model", "resnet18")),
+                model_name=str(training_cfg.get("model", "simple_cnn")),
                 max_epochs=int(training_cfg["max_epochs"]),
                 patience=int(training_cfg["early_stopping_patience"]),
                 batch_size=int(training_cfg["batch_size"]),
                 num_workers=int(training_cfg["num_workers"]),
-                image_size=int(dataset_cfg["image_size"]),
                 lr=float(training_cfg["lr"]),
                 weight_decay=float(training_cfg["weight_decay"]),
                 accelerator=str(training_cfg["accelerator"]),
@@ -90,6 +112,12 @@ def main() -> None:
                 deterministic=_parse_deterministic(training_cfg.get("deterministic", "warn")),
                 method=method,
                 percent_removed=percent_removed,
+                dataset_name=dataset_name,
+                in_channels=in_channels,
+                num_classes=num_classes,
+                is_text=is_text,
+                block_size=int(dataset_cfg.get("block_size", 128)),
+                vocab_size=vocab_size,
             )
             summary_payload = result.__dict__.copy()
             write_json(run_dir / "run_summary.json", summary_payload)

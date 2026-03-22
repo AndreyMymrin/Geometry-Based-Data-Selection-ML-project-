@@ -15,7 +15,7 @@ from gds.scoring.pipeline import run_ranking_pipeline, save_ranking_artifacts
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Rank MNIST training samples by hardness.")
+    parser = argparse.ArgumentParser(description="Rank training samples by hardness.")
     parser.add_argument("--config", type=str, default="configs/experiment/default.yaml")
     parser.add_argument("--method", type=str, required=True)
     args = parser.parse_args()
@@ -25,23 +25,42 @@ def main() -> None:
     artifacts_dir = Path(cfg["paths"]["artifacts_dir"])
     method = args.method
 
-    ranking_df = run_ranking_pipeline(
+    dataset_cfg = cfg["dataset"]
+    scoring_cfg = cfg["scoring"]
+
+    dataset_name = dataset_cfg.get("name", "mnist")
+    in_channels = int(dataset_cfg.get("in_channels", 1))
+    is_text = dataset_cfg.get("type", "image") == "text"
+
+    kwargs = dict(
         data_dir=data_dir,
         artifacts_dir=artifacts_dir,
-        val_size=int(cfg["dataset"]["val_size"]),
-        split_seed=int(cfg["dataset"]["split_seed"]),
+        val_size=int(dataset_cfg.get("val_size", 10000)),
+        split_seed=int(dataset_cfg["split_seed"]),
         method=method,
-        random_seed=int(cfg["scoring"]["random_seed"]),
-        model_names=list(cfg["scoring"]["pretrained_models"]),
-        batch_size=int(cfg["scoring"]["batch_size"]),
-        num_workers=int(cfg["scoring"]["num_workers"]),
-        image_size=int(cfg["dataset"]["image_size"]),
-        class_head_mode=str(cfg["scoring"].get("class_head_mode", "first10")),
+        random_seed=int(scoring_cfg["random_seed"]),
+        batch_size=int(scoring_cfg["batch_size"]),
+        num_workers=int(scoring_cfg["num_workers"]),
+        scoring_model=str(scoring_cfg.get("model", "simple_cnn")),
+        num_classes=int(dataset_cfg.get("num_classes", 10)),
+        scoring_epochs=int(scoring_cfg.get("num_epochs", 10)),
+        scoring_seeds=list(scoring_cfg.get("seeds", [42, 123, 456, 789, 1024])),
+        scoring_lr=float(scoring_cfg.get("lr", 0.01)),
+        scoring_momentum=float(scoring_cfg.get("momentum", 0.9)),
+        scoring_weight_decay=float(scoring_cfg.get("weight_decay", 5e-4)),
+        dataset_name=dataset_name,
+        in_channels=in_channels,
+        is_text=is_text,
+        block_size=int(dataset_cfg.get("block_size", 128)),
+        val_fraction=float(dataset_cfg.get("val_fraction", 0.1)),
     )
+
+    ranking_df = run_ranking_pipeline(**kwargs)
 
     output_dir = ensure_dir(artifacts_dir / "rankings" / method)
     metadata = {
         "method": method,
+        "dataset": dataset_name,
         "num_samples": int(len(ranking_df)),
         "config_path": str(args.config),
     }
@@ -55,4 +74,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

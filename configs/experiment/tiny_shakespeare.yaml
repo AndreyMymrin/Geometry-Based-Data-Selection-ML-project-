@@ -1,0 +1,50 @@
+project:
+  name: geometry-data-selection-tiny-shakespeare
+
+paths:
+  data_dir: data
+  artifacts_dir: artifacts_tiny_shakespeare
+
+dataset:
+  name: tiny_shakespeare
+  type: text
+  block_size: 128
+  val_fraction: 0.1
+  split_seed: 42
+
+scoring:
+  methods:
+    - perplexity_filtering
+    - semantic_dedup
+    - heuristic_filtering
+    - llm_classifier
+    - random
+  random_seed: 777
+  num_epochs: 5
+  lr: 0.0003
+  batch_size: 64
+  num_workers: 2
+
+subsets:
+  # Retention budgets: 100%, 70%, 30%, 10% of training data
+  percentiles: [0, 30, 70, 90]
+
+training:
+  model: nano_gpt
+  seeds:
+    - 101
+    - 202
+    - 303
+  max_epochs: 5
+  early_stopping_patience: 5
+  batch_size: 64
+  num_workers: 2
+  lr: 0.0003
+  weight_decay: 0.01
+  accelerator: auto
+  devices: 1
+  deterministic: warn
+
+analysis:
+  primary_metric: loss
+  plot_dpi: 150
