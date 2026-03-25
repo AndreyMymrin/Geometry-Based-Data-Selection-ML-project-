@@ -172,8 +172,11 @@ def plot_retention_curve(
     ax.set_title(title, fontsize=14, fontweight="bold")
     ax.legend(fontsize=10, loc="best", framealpha=0.9)
     ax.grid(True, alpha=0.25)
-    ax.set_xlim(0, 105)
-    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+    all_retentions = sorted(summary_df["retention"].unique())
+    tick_vals = [r * 100 for r in all_retentions]
+    ax.set_xticks(tick_vals)
+    ax.set_xticklabels([f"{v:.0f}" for v in tick_vals])
+    ax.set_xlim(min(tick_vals) - 5, max(tick_vals) + 5)
     fig.tight_layout()
     fig.savefig(out_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
@@ -240,9 +243,11 @@ def plot_scaling_law(
     ax.legend(fontsize=9, loc="best", framealpha=0.9)
     ax.grid(True, alpha=0.25, which="both")
 
-    # Nice tick labels for log scale
-    ax.set_xticks([10, 30, 70, 100])
-    ax.set_xticklabels(["10%", "30%", "70%", "100%"])
+    # Nice tick labels for log scale — derived from data
+    all_retentions_pct = sorted({r * 100 for m in summary_df["method"].unique()
+                                  for r in summary_df[summary_df["method"] == m]["retention"]})
+    ax.set_xticks(all_retentions_pct)
+    ax.set_xticklabels([f"{v:.0f}%" for v in all_retentions_pct])
 
     fig.tight_layout()
     fig.savefig(out_path, dpi=dpi, bbox_inches="tight")
