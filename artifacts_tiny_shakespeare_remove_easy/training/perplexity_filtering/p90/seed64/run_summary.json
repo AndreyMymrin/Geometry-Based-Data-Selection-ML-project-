@@ -1,0 +1,8 @@
+{
+  "method": "perplexity_filtering",
+  "percent_removed": 90,
+  "seed": 64,
+  "best_val_acc": NaN,
+  "best_val_loss": 3.322017908096313,
+  "test_acc": NaN
+}

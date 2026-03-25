@@ -1,0 +1,32 @@
+{
+  "subsets": [
+    {
+      "percent_removed": 0,
+      "path": "artifacts_tiny_shakespeare_remove_easy/subsets/perplexity_filtering/p00.json"
+    },
+    {
+      "percent_removed": 10,
+      "path": "artifacts_tiny_shakespeare_remove_easy/subsets/perplexity_filtering/p10.json"
+    },
+    {
+      "percent_removed": 20,
+      "path": "artifacts_tiny_shakespeare_remove_easy/subsets/perplexity_filtering/p20.json"
+    },
+    {
+      "percent_removed": 30,
+      "path": "artifacts_tiny_shakespeare_remove_easy/subsets/perplexity_filtering/p30.json"
+    },
+    {
+      "percent_removed": 50,
+      "path": "artifacts_tiny_shakespeare_remove_easy/subsets/perplexity_filtering/p50.json"
+    },
+    {
+      "percent_removed": 70,
+      "path": "artifacts_tiny_shakespeare_remove_easy/subsets/perplexity_filtering/p70.json"
+    },
+    {
+      "percent_removed": 90,
+      "path": "artifacts_tiny_shakespeare_remove_easy/subsets/perplexity_filtering/p90.json"
+    }
+  ]
+}

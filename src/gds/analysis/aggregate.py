@@ -22,6 +22,7 @@ METHOD_COLORS = {
     "forgetting_events": "#2ecc71",
     "effective_rank": "#e74c3c",
     "intrinsic_dimensionality_twonn": "#9b59b6",
+    "corr_integral": "#2980b9",
     "perplexity_filtering": "#e67e22",
     "semantic_dedup": "#1abc9c",
     "heuristic_filtering": "#f1c40f",
@@ -32,6 +33,7 @@ METHOD_MARKERS = {
     "forgetting_events": "o",
     "effective_rank": "s",
     "intrinsic_dimensionality_twonn": "D",
+    "corr_integral": "d",
     "perplexity_filtering": "^",
     "semantic_dedup": "v",
     "heuristic_filtering": "P",
@@ -414,17 +416,13 @@ def plot_efficiency(
                 marker=_marker(method), color=_color(method),
                 s=180, edgecolors="white", linewidths=0.8, zorder=5,
             )
-            ax.annotate(
-                f"{r*100:.0f}%", (data_saved, perf_drop),
-                textcoords="offset points", xytext=(8, 4), fontsize=8,
-            )
 
         # Invisible point for legend
         ax.scatter([], [], marker=_marker(method), color=_color(method),
                    s=100, label=_nice_name(method))
 
     ax.axhline(y=0, color="black", linewidth=0.8, linestyle="--", alpha=0.4)
-    ax.set_xlabel("Data Saved (%)", fontsize=13)
+    ax.set_xlabel("Data Dropped (%)", fontsize=13)
     ylabel = "Performance Drop (%)" if higher_is_better else "Loss Increase (%)"
     ax.set_ylabel(ylabel, fontsize=13)
     ax.set_title(title, fontsize=14, fontweight="bold")
@@ -442,6 +440,136 @@ def plot_efficiency(
     fig.tight_layout()
     fig.savefig(out_path, dpi=dpi, bbox_inches="tight")
     plt.close(fig)
+
+
+# ---------------------------------------------------------------------------
+# Chart 6: Forgetting statistics distribution (Toneva et al. 2019, Fig. 1)
+# ---------------------------------------------------------------------------
+
+
+def plot_forgetting_distribution(
+    artifacts_dir: Path,
+    out_path: Path,
+    dpi: int = 150,
+) -> bool:
+    """Histogram of forgetting event counts across all training samples.
+
+    Reproduces the style of Figure 1 from Toneva et al. (2019):
+    x-axis = number of forgetting events, y-axis = number of examples.
+    Also annotates unforgettable and never-learned counts.
+
+    Returns True if the plot was generated, False if no data found.
+    """
+    scores_path = artifacts_dir / "rankings" / "forgetting_events" / "scores.parquet"
+    if not scores_path.exists():
+        return False
+
+    import pandas as pd
+
+    df = pd.read_parquet(scores_path)
+    scores = df["score"].to_numpy()
+
+    ensure_dir(out_path.parent)
+    fig, ax = plt.subplots(figsize=(10, 6))
+
+    n_unforgettable = int((scores == 0).sum())
+    max_score = scores.max()
+    # Never-learned samples have score = max + 1 (set by ensemble code)
+    # Detect them: they are the ones with score > second-highest unique
+    unique_sorted = np.sort(np.unique(scores))
+    n_never_learned = 0
+    if len(unique_sorted) >= 2 and unique_sorted[-1] > unique_sorted[-2] + 0.5:
+        n_never_learned = int((scores == unique_sorted[-1]).sum())
+        # Exclude never-learned from histogram (plot them separately)
+        plot_scores = scores[scores < unique_sorted[-1]]
+    else:
+        plot_scores = scores
+
+    # Integer bins for forgetting counts
+    max_count = int(np.ceil(plot_scores.max())) + 1
+    bins = np.arange(-0.5, max_count + 0.5, 1)
+    ax.hist(plot_scores, bins=bins, color="#2ecc71", edgecolor="white", linewidth=0.5, alpha=0.85)
+
+    ax.set_xlabel("Number of Forgetting Events", fontsize=13)
+    ax.set_ylabel("Number of Examples", fontsize=13)
+    ax.set_title("Distribution of Forgetting Events", fontsize=14, fontweight="bold")
+    ax.grid(True, alpha=0.2, axis="y")
+
+    # Annotate key statistics
+    n_total = len(scores)
+    text_lines = [
+        f"Total samples: {n_total:,}",
+        f"Unforgettable (0 events): {n_unforgettable:,} ({100*n_unforgettable/n_total:.1f}%)",
+    ]
+    if n_never_learned > 0:
+        text_lines.append(
+            f"Never learned: {n_never_learned:,} ({100*n_never_learned/n_total:.1f}%)"
+        )
+    ax.text(
+        0.97, 0.95, "\n".join(text_lines),
+        transform=ax.transAxes, fontsize=10,
+        verticalalignment="top", horizontalalignment="right",
+        bbox=dict(boxstyle="round,pad=0.4", facecolor="wheat", alpha=0.8),
+    )
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Chart 7: Sorted forgetting counts (Toneva et al. 2019, Fig. 2 style)
+# ---------------------------------------------------------------------------
+
+
+def plot_forgetting_sorted(
+    artifacts_dir: Path,
+    out_path: Path,
+    dpi: int = 150,
+) -> bool:
+    """Plot sorted per-sample forgetting counts (ascending).
+
+    x-axis = example index (sorted), y-axis = forgetting count.
+    Shows the transition from unforgettable to highly-forgotten samples.
+
+    Returns True if the plot was generated, False if no data found.
+    """
+    scores_path = artifacts_dir / "rankings" / "forgetting_events" / "scores.parquet"
+    if not scores_path.exists():
+        return False
+
+    import pandas as pd
+
+    df = pd.read_parquet(scores_path)
+    scores = np.sort(df["score"].to_numpy())
+
+    ensure_dir(out_path.parent)
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    x = np.arange(len(scores))
+    ax.plot(x, scores, color="#2ecc71", linewidth=0.8)
+    ax.fill_between(x, 0, scores, color="#2ecc71", alpha=0.2)
+
+    ax.set_xlabel("Example Index (sorted by forgetting count)", fontsize=13)
+    ax.set_ylabel("Forgetting Events", fontsize=13)
+    ax.set_title("Sorted Forgetting Counts per Example", fontsize=14, fontweight="bold")
+    ax.grid(True, alpha=0.25)
+
+    # Mark the unforgettable boundary
+    n_unforgettable = int((scores == 0).sum())
+    if n_unforgettable > 0 and n_unforgettable < len(scores):
+        ax.axvline(x=n_unforgettable, color="red", linestyle="--", linewidth=1, alpha=0.7)
+        ax.text(
+            n_unforgettable, ax.get_ylim()[1] * 0.9,
+            f"  {n_unforgettable:,} unforgettable",
+            fontsize=9, color="red", va="top",
+        )
+
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=dpi, bbox_inches="tight")
+    plt.close(fig)
+    return True
 
 
 # ---------------------------------------------------------------------------
@@ -580,6 +708,7 @@ def save_plots(
     dpi: int = 150,
     dataset_name: str = "",
     primary_metric: str = "accuracy",
+    artifacts_dir: Path | None = None,
 ) -> tuple[Path, ...]:
     """Generate all charts and quantitative analysis.
 
@@ -690,5 +819,18 @@ def save_plots(
         write_json(fits_path, fits)
         generated.append(fits_path)
         print(f"  Saved scaling law fits: {fits_path}")
+
+    # 9. Forgetting distribution histogram (Toneva et al. 2019, Fig. 1)
+    if artifacts_dir is not None:
+        p9 = plot_dir / "forgetting_distribution.png"
+        if plot_forgetting_distribution(artifacts_dir, p9, dpi):
+            generated.append(p9)
+            print(f"  Saved: {p9}")
+
+        # 10. Sorted forgetting counts (Toneva et al. 2019, Fig. 2 style)
+        p10 = plot_dir / "forgetting_sorted.png"
+        if plot_forgetting_sorted(artifacts_dir, p10, dpi):
+            generated.append(p10)
+            print(f"  Saved: {p10}")
 
     return tuple(generated)

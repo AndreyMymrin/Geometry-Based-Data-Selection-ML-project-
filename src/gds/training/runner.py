@@ -12,7 +12,7 @@ from gds.common.io import ensure_dir, write_json
 from gds.common.seed import seed_everything
 from gds.common.types import RunResult
 from gds.training.datamodule import GenericSubsetDataModule, TextSubsetDataModule
-from gds.training.lightning_module import NanoGPTLightning, ResNet18Classifier
+from gds.training.lightning_module import ImageClassifier, NanoGPTLightning
 
 
 def _load_best_val_loss(metrics_path: Path) -> float:
@@ -62,10 +62,27 @@ def run_training(
     dataset_name: str | None = None,
     in_channels: int = 1,
     num_classes: int = 10,
+    save_checkpoints: bool = False,
+    # Optimizer / scheduler config
+    optimizer: str = "adamw",
+    momentum: float = 0.9,
+    nesterov: bool = False,
+    scheduler: str = "cosine",
+    milestones: list[int] | None = None,
+    gamma: float = 0.2,
+    # Augmentation
+    augment: bool = False,
+    # Gradient clipping
+    gradient_clip_val: float | None = None,
     # Text dataset support
     is_text: bool = False,
     block_size: int = 256,
     vocab_size: int | None = None,
+    # NanoGPT-specific (Karpathy config)
+    min_lr: float = 1e-4,
+    beta1: float = 0.9,
+    beta2: float = 0.99,
+    warmup_fraction: float = 0.02,
 ) -> RunResult:
     ensure_dir(run_dir)
     seed_everything(seed)
@@ -87,7 +104,11 @@ def run_training(
             vocab_size=vocab_size,
             block_size=block_size,
             lr=lr,
+            min_lr=min_lr,
             weight_decay=weight_decay,
+            beta1=beta1,
+            beta2=beta2,
+            warmup_fraction=warmup_fraction,
             max_epochs=max_epochs,
         )
     else:
@@ -100,17 +121,23 @@ def run_training(
             val_ids=val_ids,
             batch_size=batch_size,
             num_workers=num_workers,
+            augment=augment,
         )
-        model = ResNet18Classifier(
+        model = ImageClassifier(
             model_name=model_name,
             num_classes=num_classes,
             lr=lr,
             weight_decay=weight_decay,
             max_epochs=max_epochs,
             in_channels=in_channels,
+            optimizer=optimizer,
+            momentum=momentum,
+            nesterov=nesterov,
+            scheduler=scheduler,
+            milestones=milestones,
+            gamma=gamma,
         )
 
-    checkpoint_dir = ensure_dir(run_dir / "checkpoints")
     logger = CSVLogger(save_dir=str(run_dir), name="logs")
 
     if is_text:
@@ -118,27 +145,39 @@ def run_training(
     else:
         monitor_metric, monitor_mode = "val_acc", "max"
 
-    checkpoint_cb = ModelCheckpoint(
-        dirpath=str(checkpoint_dir),
-        filename="best",
-        monitor=monitor_metric,
-        mode=monitor_mode,
-        save_top_k=1,
-    )
-    early_stopping_cb = EarlyStopping(monitor=monitor_metric, mode=monitor_mode, patience=patience)
+    callbacks = [EarlyStopping(monitor=monitor_metric, mode=monitor_mode, patience=patience)]
+
+    if save_checkpoints:
+        checkpoint_dir = ensure_dir(run_dir / "checkpoints")
+        callbacks.append(
+            ModelCheckpoint(
+                dirpath=str(checkpoint_dir),
+                filename="best",
+                monitor=monitor_metric,
+                mode=monitor_mode,
+                save_top_k=1,
+            )
+        )
+
+    # Use mixed precision on GPU for ~2x throughput on A100/V100
+    precision = "16-mixed" if accelerator in ("gpu", "cuda") else "32-true"
 
     trainer = L.Trainer(
         max_epochs=max_epochs,
         accelerator=accelerator,
         devices=devices,
+        precision=precision,
         logger=logger,
-        callbacks=[checkpoint_cb, early_stopping_cb],
+        callbacks=callbacks,
         deterministic=deterministic,
         enable_progress_bar=True,
+        enable_checkpointing=save_checkpoints,
+        gradient_clip_val=gradient_clip_val,
     )
 
     trainer.fit(model=model, datamodule=dm)
-    test_metrics = trainer.test(model=model, datamodule=dm, ckpt_path="best")
+    ckpt_path = "best" if save_checkpoints else None
+    test_metrics = trainer.test(model=model, datamodule=dm, ckpt_path=ckpt_path)
     if is_text:
         test_acc = float("nan")  # text model doesn't produce accuracy
     else:

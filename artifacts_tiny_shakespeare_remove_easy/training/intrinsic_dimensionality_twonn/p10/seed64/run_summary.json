@@ -1,0 +1,8 @@
+{
+  "method": "intrinsic_dimensionality_twonn",
+  "percent_removed": 10,
+  "seed": 64,
+  "best_val_acc": NaN,
+  "best_val_loss": 2.5096449851989746,
+  "test_acc": NaN
+}

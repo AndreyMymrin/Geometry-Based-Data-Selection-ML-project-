@@ -8,42 +8,49 @@ paths:
 dataset:
   name: tiny_shakespeare
   type: text
-  block_size: 128
+  block_size: 256
   val_fraction: 0.1
   split_seed: 42
 
 scoring:
   methods:
+    - effective_rank
+    - intrinsic_dimensionality_twonn
+    - corr_integral
     - perplexity_filtering
     - semantic_dedup
     - heuristic_filtering
     - llm_classifier
     - random
   random_seed: 777
-  num_epochs: 5
-  lr: 0.0003
-  batch_size: 64
-  num_workers: 2
+  num_epochs: 10
+  lr: 0.001
+  batch_size: 256
+  num_workers: 8
 
 subsets:
   # Retention budgets: 100%, 70%, 30%, 10% of training data
   percentiles: [0, 30, 70, 90]
+  # "remove_easy" = remove low-score samples first (keep hard/complex)
+  # "remove_hard" = remove high-score samples first (keep easy/clean)
+  direction: remove_easy
 
 training:
   model: nano_gpt
   seeds:
-    - 101
-    - 202
-    - 303
-  max_epochs: 5
+    - 32
+    - 64
+    - 128
+  max_epochs: 20
   early_stopping_patience: 5
-  batch_size: 64
-  num_workers: 2
-  lr: 0.0003
+  batch_size: 256
+  num_workers: 8
+  lr: 0.001
   weight_decay: 0.01
-  accelerator: auto
+  accelerator: gpu
   devices: 1
   deterministic: warn
+  save_checkpoints: false
 
 analysis:
   primary_metric: loss

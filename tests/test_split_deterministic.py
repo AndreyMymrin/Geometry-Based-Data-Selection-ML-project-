@@ -1,4 +1,4 @@
-from gds.data.mnist import stratified_train_val_split
+from gds.data.datasets import stratified_train_val_split
 
 
 def test_stratified_split_deterministic() -> None:

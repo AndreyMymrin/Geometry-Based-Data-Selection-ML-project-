@@ -1,0 +1,70 @@
+project:
+  name: geometry-data-selection-mnist
+
+paths:
+  data_dir: data
+  artifacts_dir: artifacts
+
+dataset:
+  name: mnist
+  split_seed: 42
+  train_size: 50000
+  val_size: 10000
+  num_classes: 10
+  in_channels: 1
+  image_size: 28
+  augment: false  # MNIST: no augmentation (Toneva et al. 2019)
+
+scoring:
+  methods:
+    - forgetting_events
+    - effective_rank
+    - intrinsic_dimensionality_twonn
+    - corr_integral
+    - random
+  random_seed: 777
+  # Toneva et al. (2019): MNIST uses simple CNN with SGD(lr=0.01, momentum=0.5)
+  model: simple_cnn
+  num_epochs: 75
+  seeds:
+    - 2
+    - 4
+    - 8
+  lr: 0.01
+  momentum: 0.5
+  weight_decay: 0.0001
+  batch_size: 512
+  num_workers: 8
+
+subsets:
+  # Retention budgets: 100%, 70%, 30%, 10% of training data
+  percentiles: [0, 30, 70, 90]
+  # "remove_easy" = remove low-score samples first (keep hard/complex)
+  # "remove_hard" = remove high-score samples first (keep easy/clean)
+  direction: remove_easy
+
+training:
+  # Toneva et al. (2019): MNIST — simple CNN, SGD(lr=0.01, momentum=0.5)
+  model: simple_cnn
+  seeds:
+    - 32
+    - 64
+    - 128
+  max_epochs: 50
+  early_stopping_patience: 5
+  batch_size: 512
+  num_workers: 8
+  lr: 0.01
+  weight_decay: 0.0001
+  optimizer: sgd
+  momentum: 0.5
+  nesterov: false
+  scheduler: cosine
+  accelerator: gpu
+  devices: 1
+  deterministic: warn
+  save_checkpoints: false
+
+analysis:
+  primary_metric: accuracy
+  plot_dpi: 150

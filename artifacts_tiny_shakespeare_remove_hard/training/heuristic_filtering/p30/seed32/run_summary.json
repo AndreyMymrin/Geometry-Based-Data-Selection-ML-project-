@@ -1,0 +1,8 @@
+{
+  "method": "heuristic_filtering",
+  "percent_removed": 30,
+  "seed": 32,
+  "best_val_acc": NaN,
+  "best_val_loss": 3.3223533630371094,
+  "test_acc": NaN
+}

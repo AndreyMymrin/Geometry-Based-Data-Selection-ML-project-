@@ -94,6 +94,10 @@ def main() -> None:
             leave=False,
         ):
             run_dir = artifacts_dir / "training" / method / f"p{percent_removed:02d}" / f"seed{int(seed)}"
+            # Parse milestones (list of ints from yaml)
+            milestones_raw = training_cfg.get("milestones")
+            milestones = [int(m) for m in milestones_raw] if milestones_raw else None
+
             result = run_training(
                 data_dir=data_dir,
                 run_dir=run_dir,
@@ -115,9 +119,22 @@ def main() -> None:
                 dataset_name=dataset_name,
                 in_channels=in_channels,
                 num_classes=num_classes,
+                save_checkpoints=bool(training_cfg.get("save_checkpoints", False)),
+                optimizer=str(training_cfg.get("optimizer", "adamw")),
+                momentum=float(training_cfg.get("momentum", 0.9)),
+                nesterov=bool(training_cfg.get("nesterov", False)),
+                scheduler=str(training_cfg.get("scheduler", "cosine")),
+                milestones=milestones,
+                gamma=float(training_cfg.get("gamma", 0.2)),
+                augment=bool(dataset_cfg.get("augment", False)),
+                gradient_clip_val=float(training_cfg["gradient_clip_val"]) if training_cfg.get("gradient_clip_val") else None,
                 is_text=is_text,
                 block_size=int(dataset_cfg.get("block_size", 128)),
                 vocab_size=vocab_size,
+                min_lr=float(training_cfg.get("min_lr", 1e-4)),
+                beta1=float(training_cfg.get("beta1", 0.9)),
+                beta2=float(training_cfg.get("beta2", 0.99)),
+                warmup_fraction=float(training_cfg.get("warmup_fraction", 0.02)),
             )
             summary_payload = result.__dict__.copy()
             write_json(run_dir / "run_summary.json", summary_payload)

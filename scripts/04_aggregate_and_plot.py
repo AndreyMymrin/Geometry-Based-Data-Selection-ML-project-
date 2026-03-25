@@ -15,7 +15,6 @@ if str(SRC_DIR) not in sys.path:
 
 from gds.analysis.aggregate import aggregate_curves, collect_run_summaries, save_plots, save_summary
 from gds.common.config import load_config
-from gds.scoring.registry import is_forgetting_method
 
 
 def _run_tsne(
@@ -25,114 +24,102 @@ def _run_tsne(
     dataset_name: str,
     plot_dir: Path,
 ) -> None:
-    """Generate t-SNE visualization of sample embeddings colored by difficulty."""
+    """Generate t-SNE visualization of sample embeddings colored by difficulty.
+
+    Works for both image datasets (pretrained ResNet-18 features) and text
+    datasets (pretrained Qwen2-0.5B features).  Uses the first available
+    scoring method's ranking to colour samples as easy / hard / random.
+    """
     from gds.analysis.tsne_viz import (
         categorize_samples,
         compute_tsne,
-        extract_embeddings,
         plot_tsne,
     )
-    from gds.data.datasets import (
-        build_indexed_dataset,
-        build_loader,
-        get_dataset_info,
-        load_or_create_split,
-        make_eval_transform,
-        make_train_transform,
-    )
-    from gds.models.simple_cnn import SimpleCNN
 
     dataset_cfg = cfg["dataset"]
     scoring_cfg = cfg["scoring"]
-    info = get_dataset_info(dataset_name)
-
-    # Find the forgetting-based method to load its ranking scores
-    methods = scoring_cfg.get("methods", [])
-    forgetting_method = None
-    for m in methods:
-        if is_forgetting_method(m):
-            forgetting_method = m
-            break
-    if forgetting_method is None:
-        print("  No forgetting-based method found; skipping t-SNE.")
-        return
-
-    ranking_path = artifacts_dir / "rankings" / forgetting_method / "scores.parquet"
-    if not ranking_path.exists():
-        print(f"  Ranking file not found: {ranking_path}; skipping t-SNE.")
-        return
-    ranking_df = pd.read_parquet(ranking_path)
-
-    # Load or create split (image datasets only)
-    if dataset_cfg.get("type") == "text":
-        print("  t-SNE not supported for text datasets; skipping.")
-        return
-    split_seed = int(dataset_cfg["split_seed"])
-    val_size = int(dataset_cfg["val_size"])
-    split_file = artifacts_dir / "splits" / f"{dataset_name}_split_seed{split_seed}.json"
-    split = load_or_create_split(
-        data_dir=data_dir,
-        split_file=split_file,
-        dataset_name=dataset_name,
-        val_size=val_size,
-        seed=split_seed,
-    )
-
+    is_text = dataset_cfg.get("type", "image") == "text"
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"  Device: {device}")
     batch_size = int(scoring_cfg.get("batch_size", 128))
     num_workers = int(scoring_cfg.get("num_workers", 2))
 
-    # Build eval dataset for clean embeddings
-    eval_tf = make_eval_transform(dataset_name)
-    ds = build_indexed_dataset(
-        data_dir=data_dir,
-        dataset_name=dataset_name,
-        train=True,
-        transform=eval_tf,
-        indices=split.train_ids,
-    )
-    loader = build_loader(ds, batch_size, num_workers, shuffle=False)
+    # ---- Find a ranking file (prefer geometric methods, fall back to any) ----
+    methods = scoring_cfg.get("methods", [])
+    ranking_df = None
+    used_method = None
+    prefer_order = [
+        "effective_rank", "corr_integral", "intrinsic_dimensionality_twonn",
+        "forgetting_events", "perplexity_filtering", "semantic_dedup",
+        "heuristic_filtering", "llm_classifier", "random",
+    ]
+    ordered = [m for m in prefer_order if m in methods] + [m for m in methods if m not in prefer_order]
+    for m in ordered:
+        rp = artifacts_dir / "rankings" / m / "scores.parquet"
+        if rp.exists():
+            ranking_df = pd.read_parquet(rp)
+            used_method = m
+            break
+    if ranking_df is None:
+        print("  No ranking files found; skipping t-SNE.")
+        return
+    print(f"  Using '{used_method}' ranking for t-SNE colouring.")
 
-    # Build training dataset for quick model training
-    train_tf = make_train_transform(dataset_name)
-    train_ds = build_indexed_dataset(
-        data_dir=data_dir,
-        dataset_name=dataset_name,
-        train=True,
-        transform=train_tf,
-        indices=split.train_ids,
-    )
-    train_loader = build_loader(train_ds, batch_size, num_workers, shuffle=True)
+    # ---- Extract pretrained features ----
+    if is_text:
+        from gds.data.tiny_shakespeare import (
+            TinyShakespeareDataset, build_text_loader,
+            load_or_create_text_split,
+        )
+        from gds.scoring.pretrained_features import (
+            extract_text_features, set_itos,
+        )
+        split_file = artifacts_dir / "splits" / f"tiny_shakespeare_split_seed{int(dataset_cfg['split_seed'])}.json"
+        split, chunks, stoi, itos = load_or_create_text_split(
+            data_dir, split_file,
+            int(dataset_cfg.get("block_size", 256)),
+            float(dataset_cfg.get("val_fraction", 0.1)),
+            int(dataset_cfg["split_seed"]),
+        )
+        ds = TinyShakespeareDataset(chunks, split.train_ids)
+        loader = build_text_loader(ds, batch_size, num_workers, shuffle=False)
+        set_itos(itos)
+        print("  Extracting pretrained Qwen2-0.5B features for t-SNE...")
+        embeddings, labels, sample_ids_list = extract_text_features(loader, device)
+        sample_ids = np.array(sample_ids_list)
+        labels = np.array(labels)
+    else:
+        from gds.data.datasets import (
+            build_indexed_dataset, build_loader,
+            get_dataset_info, load_or_create_split, make_eval_transform,
+        )
+        from gds.scoring.pretrained_features import extract_image_features
 
-    device = torch.device("cpu")
-    model = SimpleCNN(num_classes=info["num_classes"], in_channels=info["in_channels"])
-    model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
-    criterion = torch.nn.CrossEntropyLoss()
+        info = get_dataset_info(dataset_name)
+        split_seed = int(dataset_cfg["split_seed"])
+        val_size = int(dataset_cfg["val_size"])
+        split_file = artifacts_dir / "splits" / f"{dataset_name}_split_seed{split_seed}.json"
+        split = load_or_create_split(data_dir, split_file, dataset_name, val_size, split_seed)
+        eval_tf = make_eval_transform(dataset_name)
+        ds = build_indexed_dataset(data_dir, dataset_name, True, eval_tf, split.train_ids)
+        loader = build_loader(ds, batch_size, num_workers, shuffle=False)
+        print("  Extracting pretrained ResNet-18 features for t-SNE...")
+        embeddings, labels_list, sample_ids_list = extract_image_features(loader, device)
+        sample_ids = np.array(sample_ids_list)
+        labels = np.array(labels_list)
 
-    num_epochs = int(scoring_cfg.get("num_epochs", 10))
-    print(f"  Training SimpleCNN for {num_epochs} epochs (CPU) for embeddings...")
-    model.train()
-    for epoch in range(num_epochs):
-        for x, y, _ in train_loader:
-            x, y = x.to(device), y.to(device)
-            optimizer.zero_grad()
-            loss = criterion(model(x), y)
-            loss.backward()
-            optimizer.step()
-
-    # Extract embeddings
-    print("  Extracting embeddings...")
-    embeddings, labels, sample_ids = extract_embeddings(model, loader, device)
     print(f"  Embeddings shape: {embeddings.shape}")
 
-    # Map ranking scores to sample indices
+    # ---- Map ranking scores to sample indices ----
+    print(f"  Mapping {len(ranking_df)} ranking scores to {len(sample_ids)} samples...")
     score_map = dict(zip(
         ranking_df["sample_id"].values,
         ranking_df["score"].values,
     ))
-    scores = np.array([score_map.get(sid, 0) for sid in sample_ids], dtype=np.float32)
+    scores = np.array([score_map.get(int(sid), 0) for sid in sample_ids], dtype=np.float32)
+    print(f"  Score range: [{scores.min():.4f}, {scores.max():.4f}]")
 
-    # Categorize samples
+    # ---- Categorize and run t-SNE ----
     tsne_samples = min(1000, len(sample_ids) // 4)
     categories = categorize_samples(
         sample_ids=sample_ids,
@@ -140,23 +127,22 @@ def _run_tsne(
         n_per_category=tsne_samples,
     )
 
-    # Subsample for t-SNE speed
     all_idx = np.unique(np.concatenate(list(categories.values())))
     print(f"  Running t-SNE on {len(all_idx)} samples...")
     sub_embeddings = embeddings[all_idx]
     coords_2d = compute_tsne(sub_embeddings)
 
-    # Remap category indices to subsampled array
     idx_map = {old: new for new, old in enumerate(all_idx)}
     remapped_cats = {}
     for cat, indices in categories.items():
         remapped_cats[cat] = np.array([idx_map[i] for i in indices if i in idx_map])
 
     ds_label = dataset_name.replace("_", " ").title()
+    method_label = used_method.replace("_", " ").title()
     plot_tsne(
         coords_2d=coords_2d,
         categories=remapped_cats,
-        title=f"t-SNE Embeddings - {ds_label}\n(easy=low forgetting, hard=high forgetting)",
+        title=f"t-SNE Embeddings — {ds_label}\n(easy=low {method_label} score, hard=high {method_label} score)",
         out_path=plot_dir / "tsne_embeddings.png",
         dpi=int(cfg["analysis"].get("plot_dpi", 150)),
     )
@@ -187,6 +173,7 @@ def main() -> None:
         dpi=int(cfg["analysis"]["plot_dpi"]),
         dataset_name=dataset_name,
         primary_metric=primary_metric,
+        artifacts_dir=artifacts_dir,
     )
 
     print(f"\nSaved summary CSV: {csv_path}")

@@ -1,0 +1,32 @@
+{
+  "subsets": [
+    {
+      "percent_removed": 0,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/effective_rank/p00.json"
+    },
+    {
+      "percent_removed": 10,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/effective_rank/p10.json"
+    },
+    {
+      "percent_removed": 20,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/effective_rank/p20.json"
+    },
+    {
+      "percent_removed": 30,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/effective_rank/p30.json"
+    },
+    {
+      "percent_removed": 50,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/effective_rank/p50.json"
+    },
+    {
+      "percent_removed": 70,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/effective_rank/p70.json"
+    },
+    {
+      "percent_removed": 90,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/effective_rank/p90.json"
+    }
+  ]
+}

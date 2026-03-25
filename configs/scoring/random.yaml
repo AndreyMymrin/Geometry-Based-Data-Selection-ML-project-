@@ -1,5 +1,0 @@
-method: random
-random_seed: 777
-batch_size: 128
-num_workers: 4
-

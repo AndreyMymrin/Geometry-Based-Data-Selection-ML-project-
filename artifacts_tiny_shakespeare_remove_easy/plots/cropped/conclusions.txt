@@ -1,0 +1,108 @@
+======================================================================
+QUANTITATIVE CONCLUSIONS — DATA EFFICIENCY ANALYSIS
+======================================================================
+Metric: val_loss_mean
+Direction: lower is better
+
+--- Corr Integral ---
+  Baseline (100% data): 2.7996
+  Scaling law: val_loss_mean = 0.0683 * retention^-2.6326 + 2.6800
+  Scaling law R²: 0.6378
+  Performance at each budget:
+       50% data → 3.0949 (90.5% of baseline, drop=10.6%)
+       70% data → 2.9702 (94.3% of baseline, drop=6.1%)
+       80% data → 2.6274 (106.6% of baseline, drop=-6.2%)
+       90% data → 2.7875 (100.4% of baseline, drop=-0.4%)
+      100% data → 2.7996 (100.0% of baseline, drop=0.0%)
+  Most aggressive safe budget (<2% drop): 80% data (drop=-6.2%)
+
+--- Effective Rank ---
+  Baseline (100% data): 2.8241
+  Scaling law: val_loss_mean = -151.4552 * retention^0.0007 + 154.1965
+  Scaling law R²: 0.1239
+  Performance at each budget:
+       50% data → 2.8195 (100.2% of baseline, drop=-0.2%)
+       70% data → 2.8030 (100.8% of baseline, drop=-0.8%)
+       80% data → 2.7968 (101.0% of baseline, drop=-1.0%)
+       90% data → 2.6192 (107.8% of baseline, drop=-7.3%)
+      100% data → 2.8241 (100.0% of baseline, drop=0.0%)
+  Most aggressive safe budget (<2% drop): 50% data (drop=-0.2%)
+
+--- Heuristic Filtering ---
+  Baseline (100% data): 2.8006
+  Scaling law: val_loss_mean = 239.1841 * retention^-0.0010 + -236.4258
+  Scaling law R²: 0.1677
+  Performance at each budget:
+       50% data → 2.8707 (97.6% of baseline, drop=2.5%)
+       70% data → 3.0585 (91.6% of baseline, drop=9.2%)
+       80% data → 2.6457 (105.9% of baseline, drop=-5.5%)
+       90% data → 2.7421 (102.1% of baseline, drop=-2.1%)
+      100% data → 2.8006 (100.0% of baseline, drop=0.0%)
+  Most aggressive safe budget (<2% drop): 80% data (drop=-5.5%)
+
+--- Intrinsic Dimensionality Twonn ---
+  Baseline (100% data): 2.7372
+  Scaling law: val_loss_mean = -2.4672 * retention^0.2853 + 5.1103
+  Scaling law R²: 0.693
+  Performance at each budget:
+       50% data → 3.0715 (89.1% of baseline, drop=12.2%)
+       70% data → 2.9210 (93.7% of baseline, drop=6.7%)
+       80% data → 2.8663 (95.5% of baseline, drop=4.7%)
+       90% data → 2.5259 (108.4% of baseline, drop=-7.7%)
+      100% data → 2.7372 (100.0% of baseline, drop=0.0%)
+  Most aggressive safe budget (<2% drop): 90% data (drop=-7.7%)
+
+--- Llm Classifier ---
+  Baseline (100% data): 2.7404
+  Scaling law: val_loss_mean = -1038.2503 * retention^0.0005 + 1040.9695
+  Scaling law R²: 0.9444
+  Performance at each budget:
+       50% data → 3.1195 (87.8% of baseline, drop=13.8%)
+       70% data → 2.9000 (94.5% of baseline, drop=5.8%)
+       80% data → 2.7849 (98.4% of baseline, drop=1.6%)
+       90% data → 2.8050 (97.7% of baseline, drop=2.4%)
+      100% data → 2.7404 (100.0% of baseline, drop=0.0%)
+  Most aggressive safe budget (<2% drop): 80% data (drop=1.6%)
+
+--- Perplexity Filtering ---
+  Baseline (100% data): 2.7642
+  Scaling law: val_loss_mean = 0.0000 * retention^-38.5531 + 2.8026
+  Scaling law R²: 0.8333
+  Performance at each budget:
+       50% data → 3.0895 (89.5% of baseline, drop=11.8%)
+       70% data → 2.7472 (100.6% of baseline, drop=-0.6%)
+       80% data → 2.8955 (95.5% of baseline, drop=4.8%)
+       90% data → 2.8033 (98.6% of baseline, drop=1.4%)
+      100% data → 2.7642 (100.0% of baseline, drop=0.0%)
+  Most aggressive safe budget (<2% drop): 70% data (drop=-0.6%)
+
+--- Random ---
+  Baseline (100% data): 2.5188
+  Scaling law: val_loss_mean = -0.9686 * retention^0.9781 + 3.5091
+  Scaling law R²: 0.8719
+  Performance at each budget:
+       50% data → 3.0127 (83.6% of baseline, drop=19.6%)
+       70% data → 2.8754 (87.6% of baseline, drop=14.2%)
+       80% data → 2.6277 (95.9% of baseline, drop=4.3%)
+       90% data → 2.7145 (92.8% of baseline, drop=7.8%)
+      100% data → 2.5188 (100.0% of baseline, drop=0.0%)
+  Most aggressive safe budget (<2% drop): 100% data (drop=0.0%)
+
+--- Semantic Dedup ---
+  Baseline (100% data): 2.5187
+  Scaling law: val_loss_mean = -1.3277 * retention^0.6767 + 3.9124
+  Scaling law R²: 0.6835
+  Performance at each budget:
+       50% data → 3.0826 (81.7% of baseline, drop=22.4%)
+       70% data → 2.9181 (86.3% of baseline, drop=15.9%)
+       80% data → 2.6043 (96.7% of baseline, drop=3.4%)
+       90% data → 2.8592 (88.1% of baseline, drop=13.5%)
+      100% data → 2.5187 (100.0% of baseline, drop=0.0%)
+  Most aggressive safe budget (<2% drop): 100% data (drop=0.0%)
+
+--- Best Method per Budget ---
+  50% retention → Effective Rank
+  70% retention → Perplexity Filtering
+  80% retention → Semantic Dedup
+  90% retention → Intrinsic Dimensionality Twonn
+======================================================================

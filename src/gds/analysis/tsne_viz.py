@@ -1,7 +1,10 @@
 """t-SNE visualization of sample embeddings colored by difficulty.
 
-Produces a scatter plot similar to the reference: easy samples (cluster centers)
-vs difficult samples (cluster boundaries), with random baseline for comparison.
+Produces a scatter plot: easy samples (low scorer scores) vs difficult
+samples (high scorer scores), with a random baseline for comparison.
+
+Embeddings come from pretrained models (ResNet-18 for images, Qwen2-0.5B
+for text) — *not* from a freshly trained SimpleCNN.
 """
 
 from __future__ import annotations
@@ -10,47 +13,21 @@ from pathlib import Path
 
 import matplotlib
 import numpy as np
-import torch
-from torch.utils.data import DataLoader
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
-def extract_embeddings(
-    model: torch.nn.Module,
-    loader: DataLoader,
-    device: torch.device,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Extract embeddings from model's penultimate layer.
-
-    Returns (embeddings, labels, sample_ids).
-    """
-    model.eval()
-    model.to(device)
-    all_emb, all_labels, all_ids = [], [], []
-
-    with torch.no_grad():
-        for x, y, sids in loader:
-            x = x.to(device)
-            emb = model.get_embeddings(x)
-            all_emb.append(emb.cpu().numpy())
-            all_labels.append(y.numpy())
-            all_ids.append(sids.numpy())
-
-    return (
-        np.concatenate(all_emb, axis=0),
-        np.concatenate(all_labels, axis=0),
-        np.concatenate(all_ids, axis=0),
-    )
-
-
-def compute_tsne(embeddings: np.ndarray, perplexity: float = 30.0, seed: int = 42) -> np.ndarray:
+def compute_tsne(
+    embeddings: np.ndarray,
+    perplexity: float = 30.0,
+    seed: int = 42,
+) -> np.ndarray:
     """Run t-SNE on embeddings. Returns 2D coordinates."""
     from sklearn.manifold import TSNE
 
-    # Adjust perplexity if too high for the number of samples
     n = embeddings.shape[0]
+    print(f"  Computing t-SNE ({n} samples, {embeddings.shape[1]}D -> 2D) ...")
     perp = min(perplexity, max(5.0, (n - 1) / 3.0))
     tsne = TSNE(
         n_components=2,
@@ -58,8 +35,11 @@ def compute_tsne(embeddings: np.ndarray, perplexity: float = 30.0, seed: int = 4
         random_state=seed,
         max_iter=1000,
         method="barnes_hut",
+        verbose=1,
     )
-    return tsne.fit_transform(embeddings.astype(np.float64))
+    coords = tsne.fit_transform(embeddings.astype(np.float64))
+    print("  t-SNE done.")
+    return coords
 
 
 def categorize_samples(
@@ -77,10 +57,11 @@ def categorize_samples(
     sorted_idx = np.argsort(scores)
 
     n_pick = min(n_per_category, n // 4)
+    print(f"  Categorizing: {n_pick} easy / {n_pick} hard / {n_pick} random (from {n} total)")
 
-    # Easy = lowest scores (never or rarely forgotten)
+    # Easy = lowest scores
     easy_idx = sorted_idx[:n_pick]
-    # Hard = highest scores (most frequently forgotten)
+    # Hard = highest scores
     hard_idx = sorted_idx[-n_pick:]
     # Random = random subset
     random_idx = rng.choice(n, size=n_pick, replace=False)
@@ -100,6 +81,9 @@ def plot_tsne(
     dpi: int = 150,
 ) -> None:
     """Create t-SNE scatter plot with color-coded difficulty categories."""
+    from gds.common.io import ensure_dir
+
+    ensure_dir(out_path.parent)
     fig, ax = plt.subplots(figsize=(10, 8))
 
     colors = {

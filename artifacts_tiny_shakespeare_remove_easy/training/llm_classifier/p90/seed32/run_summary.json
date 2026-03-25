@@ -1,0 +1,8 @@
+{
+  "method": "llm_classifier",
+  "percent_removed": 90,
+  "seed": 32,
+  "best_val_acc": NaN,
+  "best_val_loss": 3.333300828933716,
+  "test_acc": NaN
+}

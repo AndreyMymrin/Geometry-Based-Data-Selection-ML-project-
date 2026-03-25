@@ -219,3 +219,24 @@ class NanoGPT(nn.Module):
             x = block(x)
         x = self.transformer.ln_f(x)
         return x.mean(dim=1)
+
+    def get_hidden_states(self, idx: torch.Tensor) -> list[torch.Tensor]:
+        """Extract hidden states from every transformer layer.
+
+        Parameters
+        ----------
+        idx : Tensor of shape (B, T), dtype long
+
+        Returns
+        -------
+        list of Tensors, each of shape (B, T, n_embd)
+            One tensor per transformer layer (L total).
+        """
+        b, t = idx.size()
+        pos = torch.arange(0, t, dtype=torch.long, device=idx.device)
+        x = self.transformer.drop(self.transformer.wte(idx) + self.transformer.wpe(pos))
+        hidden_states = []
+        for block in self.transformer.h:
+            x = block(x)
+            hidden_states.append(x)
+        return hidden_states

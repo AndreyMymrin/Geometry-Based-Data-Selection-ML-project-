@@ -1,0 +1,6 @@
+{
+  "method": "random",
+  "dataset": "mnist",
+  "num_samples": 50000,
+  "config_path": "configs/experiment/mnist_remove_hard.yaml"
+}

@@ -1,135 +1,112 @@
+"""Effective rank scorer (Roy & Vetterli, EUSIPCO 2007).
+
+Reference:
+    O. Roy and M. Vetterli, "The Effective Rank: A Measure of Effective
+    Dimensionality," 15th European Signal Processing Conference (EUSIPCO),
+    Poznan, Poland, 2007, pp. 606-610.
+
+Definition:
+    Given matrix X of size (n_tokens, d_hidden) with singular values
+    sigma_1 >= ... >= sigma_Q:
+        p_k  = sigma_k / sum(sigma_j)      (L1-normalised singular values)
+        H    = -sum(p_k * log(p_k))         (Shannon entropy)
+        erank(X) = exp(H)
+
+    Per-sample score = average erank across all layers of hidden states.
+    Higher score -> richer internal representation -> more informative sample.
+"""
+
 from __future__ import annotations
 
 from typing import Any
 
 import numpy as np
 import pandas as pd
-
-from gds.scoring.base import SampleScorer
-from gds.scoring.utils import stable_rank_from_scores
+from tqdm.auto import tqdm
 
 
-def compute_effective_rank(features: np.ndarray) -> np.ndarray:
-    """
-    Compute per-sample effective rank scores from a feature matrix.
+def _entropy_from_sigma(sigma: np.ndarray, eps: float = 1e-12) -> float:
+    """Shannon entropy of the normalised singular-value distribution."""
+    total = sigma.sum()
+    if total < eps:
+        return 0.0
+    p = sigma / total
+    p_safe = np.maximum(p, eps)
+    return float(-np.sum(p * np.log(p_safe)))
 
-    Uses the Diff-eRank approach (Wei et al., NeurIPS 2024):
-        1. Build a trace-normalised covariance matrix from all N representations.
-        2. Per-sample score = erank(all) - erank(all \\ {i})  (leave-one-out).
 
-    A higher score means the sample contributes more geometric diversity
-    to the representation space and is therefore more informative.
-
-    This implementation uses vectorised first-order eigenvalue perturbation
-    instead of N separate SVD calls, reducing complexity from O(N * d^3) to
-    O(d^3 + N * d^2).
+def erank(X: np.ndarray, eps: float = 1e-12) -> float:
+    """Effective rank of a 2-D matrix (Roy & Vetterli, 2007).
 
     Parameters
     ----------
-    features : np.ndarray, shape (N, d)
-        Feature vectors extracted from a model's internal representations.
+    X : np.ndarray, shape (n, d)
+        Any real-valued matrix (e.g. hidden states of shape
+        (n_tokens, d_hidden) for one layer of one sample).
 
     Returns
     -------
-    scores : np.ndarray, shape (N,), dtype float32
-        Per-sample effective rank contribution. Higher = more informative.
+    float
+        Effective rank in [1, min(n, d)].
     """
-    if features.ndim != 2:
-        raise ValueError(f"Expected 2D features, got shape={features.shape}")
-    if features.shape[0] < 3:
-        raise ValueError("compute_effective_rank requires at least 3 samples.")
+    if X.ndim != 2:
+        raise ValueError(f"Expected 2-D matrix, got shape {X.shape}.")
+    if X.shape[0] < 2:
+        raise ValueError("ERank requires at least 2 rows (tokens).")
 
-    N, d = features.shape
-    features = features.astype(np.float64)
+    X64 = X.astype(np.float64)
+    n, d = X64.shape
 
-    # --- Step 1: mean-centre and L2-normalise rows ---
-    Z = features - features.mean(axis=0, keepdims=True)
-    row_norms = np.linalg.norm(Z, axis=1, keepdims=True)
-    row_norms = np.where(row_norms < 1e-12, 1.0, row_norms)
-    Z = Z / row_norms
+    if n < d:
+        G = X64 @ X64.T                              # (n, n), symmetric
+        eigs = np.linalg.eigvalsh(G)                  # ascending order, O(n³)
+        eigs = np.maximum(eigs, 0.0)
+        sigma = np.sqrt(eigs)
+    else:
+        sigma = np.linalg.svd(X64, compute_uv=False)
 
-    # --- Step 2: full covariance ---
-    C_full = Z.T @ Z  # (d, d)
-
-    # --- Step 3: eigendecomposition of full covariance (once) ---
-    eigenvalues, eigenvectors = np.linalg.eigh(C_full)  # eigenvalues sorted ascending
-    eigenvalues = np.maximum(eigenvalues, 0.0)  # clamp numerical negatives
-
-    # --- Step 4: global erank ---
-    global_er = _erank_from_eigenvalues(eigenvalues)
-    print(f"  Global effective rank: {global_er:.2f}  (d={d}, N={N})")
-
-    # --- Step 5: vectorised leave-one-out via first-order perturbation ---
-    # Project each sample onto the eigenbasis: W[i,k] = z_i^T u_k
-    W = Z @ eigenvectors  # (N, d)
-    W2 = W ** 2           # (N, d) — squared projections
-
-    # LOO eigenvalues: lambda_k^{(i)} ≈ lambda_k - w_{ik}^2
-    # shape: (N, d)
-    loo_eigs = eigenvalues[np.newaxis, :] - W2
-    loo_eigs = np.maximum(loo_eigs, 0.0)  # clamp negatives
-
-    # Compute erank for each LOO set (vectorised)
-    loo_eranks = _erank_from_eigenvalues_batch(loo_eigs)
-
-    scores = global_er - loo_eranks
-    print(f"  Score range: [{scores.min():.6f}, {scores.max():.6f}]")
-    return scores.astype(np.float32)
-
-
-def _erank_from_eigenvalues(eigs: np.ndarray, eps: float = 1e-12) -> float:
-    """Effective rank from eigenvalue array (single set)."""
-    total = eigs.sum()
-    if total < eps:
-        return 1.0
-    p = eigs / total
-    mask = p > eps
-    H = float(-np.sum(p[mask] * np.log(p[mask])))
+    H = _entropy_from_sigma(sigma, eps)
     return float(np.exp(H))
 
 
-def _erank_from_eigenvalues_batch(eigs: np.ndarray, eps: float = 1e-12) -> np.ndarray:
-    """Effective rank from eigenvalue arrays (batch of N sets).
+def layerwise_erank(
+    hidden_states: list[np.ndarray],
+) -> np.ndarray:
+    """Compute erank for each layer's hidden-state matrix.
 
     Parameters
     ----------
-    eigs : np.ndarray, shape (N, d)
-        Each row is a set of eigenvalues.
+    hidden_states : list of np.ndarray
+        L arrays, each of shape (n_tokens, d_hidden).
 
     Returns
     -------
-    eranks : np.ndarray, shape (N,)
+    np.ndarray, shape (L,)
     """
-    totals = eigs.sum(axis=1, keepdims=True)  # (N, 1)
-    totals = np.maximum(totals, eps)
-    p = eigs / totals  # (N, d)
-    # Clamp for log stability
-    p_safe = np.maximum(p, eps)
-    # Zero out negligible eigenvalues so they don't contribute to entropy
-    H = -np.sum(np.where(p > eps, p * np.log(p_safe), 0.0), axis=1)
-    return np.exp(H)
+    return np.array([erank(X) for X in hidden_states], dtype=np.float64)
 
 
-# Keep the old function for compatibility (used by global erank calculation)
-def _erank_from_covariance(C: np.ndarray, eps: float = 1e-12) -> float:
-    """Effective rank of a PSD covariance matrix after trace-normalisation."""
-    eigs = np.linalg.eigvalsh(C)
-    eigs = np.maximum(eigs, 0.0)
-    return _erank_from_eigenvalues(eigs, eps)
+def average_erank(hidden_states: list[np.ndarray]) -> float:
+    """Average erank across all layers for one sample."""
+    scores = layerwise_erank(hidden_states)
+    return float(scores.mean())
 
 
-class EffectiveRankScorer(SampleScorer):
-    """
-    Geometry-based effective rank scorer (Diff-eRank, Wei et al. NeurIPS 2024).
+class EffectiveRankScorer:
+    """Per-sample effective rank scorer.
 
-    Scores each sample by its leave-one-out contribution to the effective rank
-    of the population's trace-normalised covariance matrix:
+    Each sample is scored by the average erank of its hidden-state
+    matrices across L transformer layers:
 
-        Score(i) = erank(all N samples) - erank(all N samples except i)
+        Score(i) = (1/L) * sum_l  erank( H_i^l )
 
-    Higher score -> sample adds more geometric diversity -> more informative.
+    where H_i^l has shape (n_tokens, d_hidden) for sample i, layer l.
 
-    Requires metadata['features']: np.ndarray of shape (N, d).
+    Higher score -> richer internal representation -> more informative.
+
+    Requires ``metadata['hidden_states']``: list of N per-sample
+    hidden-state lists, each containing L arrays of shape
+    (n_tokens, d_hidden).
     """
 
     def __init__(self) -> None:
@@ -148,34 +125,53 @@ class EffectiveRankScorer(SampleScorer):
         labels: list[int],
         metadata: dict[str, Any] | None = None,
     ) -> pd.DataFrame:
-        if metadata is None or "features" not in metadata:
-            raise ValueError("metadata['features'] is required for effective-rank scoring.")
+        if metadata is None or "hidden_states" not in metadata:
+            raise ValueError(
+                "metadata['hidden_states'] is required. "
+                "Expected a list of N per-sample hidden-state lists, "
+                "each containing L arrays of shape (n_tokens, d_hidden)."
+            )
 
-        features      = np.asarray(metadata["features"], dtype=np.float32)
-        labels_np     = np.asarray(labels,     dtype=np.int64)
-        sample_ids_np = np.asarray(sample_ids, dtype=np.int64)
+        all_hidden: list[list[np.ndarray]] = metadata["hidden_states"]
+        n_samples = len(sample_ids)
 
-        if features.shape[0] != sample_ids_np.shape[0]:
-            raise ValueError("Feature rows must match the number of sample ids.")
+        if len(all_hidden) != n_samples:
+            raise ValueError(
+                f"hidden_states has {len(all_hidden)} entries "
+                f"but sample_ids has {n_samples}."
+            )
 
-        scores = compute_effective_rank(features)
-        ranks  = stable_rank_from_scores(sample_ids=sample_ids_np, scores=scores)
-
-        self._last_metadata = {
-            "method":        self.name,
-            "feature_shape": [int(features.shape[0]), int(features.shape[1])],
-            "mean_score":    float(scores.mean()),
-            "min_score":     float(scores.min()),
-            "max_score":     float(scores.max()),
-        }
-
-        df = pd.DataFrame(
-            {
-                "sample_id": sample_ids_np,
-                "label":     labels_np,
-                "score":     scores.astype(float),
-                "rank":      ranks.astype(int),
-                "method":    self.name,
-            }
+        print(f"  Computing per-sample erank ({n_samples} samples)...")
+        scores = np.array(
+            [average_erank(hs) for hs in tqdm(all_hidden, desc="  erank")],
+            dtype=np.float64,
         )
-        return df.sort_values("rank", kind="stable").reset_index(drop=True)
+
+        # Lower score = less informative = removed first (rank 1).
+        # Use stable_rank_from_scores for consistency with other scorers.
+        ranks = np.argsort(np.argsort(scores)) + 1
+
+        n_layers = len(all_hidden[0]) if all_hidden else 0
+        self._last_metadata = {
+            "method":     self.name,
+            "n_samples":  n_samples,
+            "n_layers":   n_layers,
+            "mean_score": float(scores.mean()),
+            "min_score":  float(scores.min()),
+            "max_score":  float(scores.max()),
+        }
+        print(f"  erank: mean={scores.mean():.2f}, range=[{scores.min():.2f}, {scores.max():.2f}]")
+
+        return (
+            pd.DataFrame(
+                {
+                    "sample_id": np.asarray(sample_ids, dtype=np.int64),
+                    "label":     np.asarray(labels, dtype=np.int64),
+                    "score":     scores,
+                    "rank":      ranks.astype(int),
+                    "method":    self.name,
+                }
+            )
+            .sort_values("rank", kind="stable")
+            .reset_index(drop=True)
+        )

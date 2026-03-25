@@ -1,0 +1,32 @@
+{
+  "subsets": [
+    {
+      "percent_removed": 0,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/llm_classifier/p00.json"
+    },
+    {
+      "percent_removed": 10,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/llm_classifier/p10.json"
+    },
+    {
+      "percent_removed": 20,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/llm_classifier/p20.json"
+    },
+    {
+      "percent_removed": 30,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/llm_classifier/p30.json"
+    },
+    {
+      "percent_removed": 50,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/llm_classifier/p50.json"
+    },
+    {
+      "percent_removed": 70,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/llm_classifier/p70.json"
+    },
+    {
+      "percent_removed": 90,
+      "path": "artifacts_tiny_shakespeare_remove_hard/subsets/llm_classifier/p90.json"
+    }
+  ]
+}

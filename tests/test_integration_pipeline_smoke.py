@@ -12,15 +12,15 @@ def test_pipeline_smoke_subset_build(tmp_path: Path) -> None:
             "label": [i % 10 for i in range(2000)],
             "score": [i / 2000 for i in range(2000)],
             "rank": list(range(2000)),
-            "method": ["error_rate_ensemble"] * 2000,
+            "method": ["forgetting_events"] * 2000,
         }
     )
     subsets = build_subsets_from_ranking(
         ranking_df=ranking_df,
-        method="error_rate_ensemble",
+        method="forgetting_events",
         percentiles=[0, 5],
     )
-    out_dir = tmp_path / "subsets" / "error_rate_ensemble"
+    out_dir = tmp_path / "subsets" / "forgetting_events"
     save_subsets(subsets=subsets, output_dir=out_dir)
 
     assert (out_dir / "p00.json").exists()

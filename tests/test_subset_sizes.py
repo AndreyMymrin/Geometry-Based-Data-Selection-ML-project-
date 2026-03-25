@@ -11,12 +11,12 @@ def test_subset_sizes_match_percentiles() -> None:
             "label": [0] * n,
             "score": [0.1] * n,
             "rank": list(range(n)),
-            "method": ["error_rate_ensemble"] * n,
+            "method": ["forgetting_events"] * n,
         }
     )
     subsets = build_subsets_from_ranking(
         ranking_df=ranking_df,
-        method="error_rate_ensemble",
+        method="forgetting_events",
         percentiles=[0, 5, 10, 60],
     )
     retained_counts = [len(s.retained_ids) for s in subsets]

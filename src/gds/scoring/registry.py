@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from gds.scoring.base import SampleScorer
+from gds.scoring.corr_integral import CorrIntScorer
 from gds.scoring.effective_rank import EffectiveRankScorer
 from gds.scoring.forgetting import ForgettingEventScorer
 from gds.scoring.heuristic_filter import HeuristicFilteringScorer
@@ -10,16 +11,19 @@ from gds.scoring.perplexity import PerplexityFilteringScorer
 from gds.scoring.random_scorer import RandomScorer
 from gds.scoring.semantic_dedup import SemanticDedupScorer
 
-# Methods that need a trained model to extract features/embeddings.
+# Methods that need per-sample hidden states from a pretrained model
+# (ResNet-18 for images, Qwen2-0.5B for text).
+_HIDDEN_STATE_METHODS = {"effective_rank", "corr_integral"}
+
+# Methods that need flat pretrained features (N, d) — last layer of
+# pretrained model, mean-pooled.
 _FEATURE_METHODS = {
-    "effective_rank",
     "intrinsic_dimensionality_twonn",
     "semantic_dedup",
 }
 
 # Methods that need a trained text model to compute per-sample scores
-# (perplexity, entropy). These also train a model but produce scalar
-# scores rather than embeddings.
+# (perplexity, entropy).
 _TEXT_MODEL_METHODS = {"perplexity_filtering", "llm_classifier"}
 
 # Methods that work on raw text chunks without model training.
@@ -36,6 +40,8 @@ def get_scorer(method: str, random_seed: int = 777) -> SampleScorer:
         return EffectiveRankScorer()
     if method == "intrinsic_dimensionality_twonn":
         return IntrinsicDimensionalityTwoNNScorer()
+    if method == "corr_integral":
+        return CorrIntScorer()
     if method == "perplexity_filtering":
         return PerplexityFilteringScorer()
     if method == "semantic_dedup":
@@ -54,8 +60,13 @@ def is_forgetting_method(method: str) -> bool:
     return method == "forgetting_events"
 
 
+def is_hidden_state_method(method: str) -> bool:
+    """Return True if *method* needs per-sample hidden states from a pretrained model."""
+    return method in _HIDDEN_STATE_METHODS
+
+
 def is_feature_method(method: str) -> bool:
-    """Return True if *method* requires feature extraction from a trained model."""
+    """Return True if *method* needs flat pretrained features."""
     return method in _FEATURE_METHODS
 
 

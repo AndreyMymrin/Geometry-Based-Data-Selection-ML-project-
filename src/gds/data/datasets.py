@@ -55,18 +55,51 @@ def get_dataset_info(dataset_name: str) -> dict:
     return DATASET_REGISTRY[dataset_name]
 
 
-def make_train_transform(dataset_name: str) -> transforms.Compose:
+class Cutout:
+    """Randomly mask out square patches from the image (DeVries & Taylor, 2017).
+
+    Used by Toneva et al. (2019) for CIFAR-10 ResNet-18 training.
+    """
+
+    def __init__(self, n_holes: int = 1, length: int = 16) -> None:
+        self.n_holes = n_holes
+        self.length = length
+
+    def __call__(self, img: torch.Tensor) -> torch.Tensor:
+        h, w = img.shape[-2:]
+        mask = torch.ones_like(img)
+        for _ in range(self.n_holes):
+            y = torch.randint(0, h, (1,)).item()
+            x = torch.randint(0, w, (1,)).item()
+            y1 = max(0, y - self.length // 2)
+            y2 = min(h, y + self.length // 2)
+            x1 = max(0, x - self.length // 2)
+            x2 = min(w, x + self.length // 2)
+            mask[:, y1:y2, x1:x2] = 0.0
+        return img * mask
+
+
+def make_train_transform(dataset_name: str, augment: bool = False) -> transforms.Compose:
+    """Training transform.
+
+    When *augment* is True, applies dataset-specific augmentation following
+    Toneva et al. (2019):
+      - CIFAR-10: RandomCrop(32, padding=4) + RandomHorizontalFlip + Cutout(16)
+      - MNIST: no augmentation (paper uses none)
+    """
     info = get_dataset_info(dataset_name)
-    size = info["image_size"]
-    t = []
-    if info["in_channels"] == 1:
-        t.append(transforms.RandomCrop(size, padding=2))
-        t.append(transforms.RandomRotation(degrees=10))
-    else:
-        t.append(transforms.RandomCrop(size, padding=4))
-        t.append(transforms.RandomHorizontalFlip())
-    t.append(transforms.ToTensor())
-    t.append(transforms.Normalize(mean=info["mean"], std=info["std"]))
+    t: list = []
+    if augment and dataset_name == "cifar10":
+        t.extend([
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+        ])
+    t.extend([
+        transforms.ToTensor(),
+        transforms.Normalize(mean=info["mean"], std=info["std"]),
+    ])
+    if augment and dataset_name == "cifar10":
+        t.append(Cutout(n_holes=1, length=16))
     return transforms.Compose(t)
 
 

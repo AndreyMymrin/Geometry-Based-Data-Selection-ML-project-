@@ -37,13 +37,28 @@ def main() -> None:
             max_percent=int(subsets_cfg["max_percent"]),
             step_percent=int(subsets_cfg["step_percent"]),
         )
+    direction = str(subsets_cfg.get("direction", "remove_easy"))
     subsets = build_subsets_from_ranking(
         ranking_df=ranking_df,
         method=args.method,
         percentiles=percentiles,
+        direction=direction,
     )
     output_dir = artifacts_dir / "subsets" / args.method
     save_subsets(subsets=subsets, output_dir=output_dir)
+
+    # Verification: print subset stats so we can confirm correctness
+    print(f"  Direction: {direction}")
+    for s in subsets:
+        retained = set(s.retained_ids)
+        ret_df = ranking_df[ranking_df["sample_id"].isin(retained)]
+        rem_df = ranking_df[~ranking_df["sample_id"].isin(retained)]
+        ret_score = f"{ret_df['score'].mean():.3f}" if len(ret_df) > 0 else "N/A"
+        rem_score = f"{rem_df['score'].mean():.3f}" if len(rem_df) > 0 else "N/A"
+        print(
+            f"  p{s.percent_removed:02d}: retained={len(retained):>6d}, "
+            f"retained_mean_score={ret_score}, removed_mean_score={rem_score}"
+        )
     print(f"Saved {len(subsets)} subsets in {output_dir}")
 
 

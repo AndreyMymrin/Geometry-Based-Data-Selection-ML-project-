@@ -23,6 +23,7 @@ class GenericSubsetDataModule(L.LightningDataModule):
         val_ids: list[int],
         batch_size: int = 128,
         num_workers: int = 2,
+        augment: bool = False,
     ) -> None:
         super().__init__()
         self.data_dir = data_dir
@@ -31,13 +32,14 @@ class GenericSubsetDataModule(L.LightningDataModule):
         self.val_ids = val_ids
         self.batch_size = batch_size
         self.num_workers = num_workers
+        self.augment = augment
 
         self._train_dataset = None
         self._val_dataset = None
         self._test_dataset = None
 
     def setup(self, stage: str | None = None) -> None:
-        train_tf = make_train_transform(self.dataset_name)
+        train_tf = make_train_transform(self.dataset_name, augment=self.augment)
         eval_tf = make_eval_transform(self.dataset_name)
 
         self._train_dataset = build_indexed_dataset(
@@ -69,6 +71,7 @@ class GenericSubsetDataModule(L.LightningDataModule):
             num_workers=self.num_workers,
             shuffle=True,
             pin_memory=True,
+            persistent_workers=self.num_workers > 0,
         )
 
     def val_dataloader(self) -> DataLoader:
@@ -78,6 +81,7 @@ class GenericSubsetDataModule(L.LightningDataModule):
             num_workers=self.num_workers,
             shuffle=False,
             pin_memory=True,
+            persistent_workers=self.num_workers > 0,
         )
 
     def test_dataloader(self) -> DataLoader:
@@ -87,6 +91,7 @@ class GenericSubsetDataModule(L.LightningDataModule):
             num_workers=self.num_workers,
             shuffle=False,
             pin_memory=True,
+            persistent_workers=self.num_workers > 0,
         )
 
 
@@ -145,6 +150,7 @@ class TextSubsetDataModule(L.LightningDataModule):
             num_workers=self.num_workers,
             shuffle=True,
             pin_memory=True,
+            persistent_workers=self.num_workers > 0,
         )
 
     def val_dataloader(self) -> DataLoader:
@@ -154,6 +160,7 @@ class TextSubsetDataModule(L.LightningDataModule):
             num_workers=self.num_workers,
             shuffle=False,
             pin_memory=True,
+            persistent_workers=self.num_workers > 0,
         )
 
     def test_dataloader(self) -> DataLoader:
