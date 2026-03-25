@@ -1,5 +1,0 @@
-{
-  "method": "error_rate_ensemble",
-  "num_samples": 50000,
-  "config_path": "configs/experiment/default.yaml"
-}
