@@ -4,12 +4,6 @@
       "baseline_value": 0.9736666480700175,
       "budget_analysis": [
         {
-          "retention_pct": 50.0,
-          "metric_value": 0.8507000009218851,
-          "relative_to_baseline_pct": 87.37,
-          "drop_pct": 12.63
-        },
-        {
           "retention_pct": 70.0,
           "metric_value": 0.9559666713078817,
           "relative_to_baseline_pct": 98.18,
@@ -41,19 +35,13 @@
         "drop_pct": 1.82
       },
       "scaling_law": {
-        "formula": "test_acc_mean = 308.9021 * retention^0.0006 + -307.9203",
-        "r_squared": 0.7323
+        "formula": "test_acc_mean = 0.0464 * retention^6.5432 + 0.9329",
+        "r_squared": 0.292
       }
     },
     "effective_rank": {
       "baseline_value": 0.979200005531311,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 0.8589666883150736,
-          "relative_to_baseline_pct": 87.72,
-          "drop_pct": 12.28
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 0.8593666752179464,
@@ -86,19 +74,13 @@
         "drop_pct": 0.28
       },
       "scaling_law": {
-        "formula": "test_acc_mean = 0.1517 * retention^4.8201 + 0.8415",
-        "r_squared": 0.7975
+        "formula": "test_acc_mean = 0.3993 * retention^1.2382 + 0.5916",
+        "r_squared": 0.814
       }
     },
     "forgetting_events": {
       "baseline_value": 0.977399984995524,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 0.9585666656494141,
-          "relative_to_baseline_pct": 98.07,
-          "drop_pct": 1.93
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 0.9739000002543131,
@@ -125,25 +107,19 @@
         }
       ],
       "most_aggressive_safe_budget": {
-        "retention_pct": 50.0,
-        "metric_value": 0.9585666656494141,
-        "relative_to_baseline_pct": 98.07,
-        "drop_pct": 1.93
+        "retention_pct": 70.0,
+        "metric_value": 0.9739000002543131,
+        "relative_to_baseline_pct": 99.64,
+        "drop_pct": 0.36
       },
       "scaling_law": {
-        "formula": "test_acc_mean = -26.8026 * retention^-0.0008 + 27.7763",
-        "r_squared": 0.2858
+        "formula": "test_acc_mean = 0.0133 * retention^10.9678 + 0.9651",
+        "r_squared": 0.2576
       }
     },
     "intrinsic_dimensionality_twonn": {
       "baseline_value": 0.9704999923706055,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 0.9748333295186361,
-          "relative_to_baseline_pct": 100.45,
-          "drop_pct": -0.45
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 0.9533999959627787,
@@ -170,25 +146,19 @@
         }
       ],
       "most_aggressive_safe_budget": {
-        "retention_pct": 50.0,
-        "metric_value": 0.9748333295186361,
-        "relative_to_baseline_pct": 100.45,
-        "drop_pct": -0.45
+        "retention_pct": 70.0,
+        "metric_value": 0.9533999959627787,
+        "relative_to_baseline_pct": 98.24,
+        "drop_pct": 1.76
       },
       "scaling_law": {
-        "formula": "test_acc_mean = -34.9239 * retention^0.0004 + 35.8696",
-        "r_squared": 0.006
+        "formula": "test_acc_mean = 0.0607 * retention^7.6467 + 0.9174",
+        "r_squared": 0.2329
       }
     },
     "random": {
       "baseline_value": 0.9660000006357828,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 0.9552000164985657,
-          "relative_to_baseline_pct": 98.88,
-          "drop_pct": 1.12
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 0.9670333464940389,
@@ -215,19 +185,18 @@
         }
       ],
       "most_aggressive_safe_budget": {
-        "retention_pct": 50.0,
-        "metric_value": 0.9552000164985657,
-        "relative_to_baseline_pct": 98.88,
-        "drop_pct": 1.12
+        "retention_pct": 70.0,
+        "metric_value": 0.9670333464940389,
+        "relative_to_baseline_pct": 100.11,
+        "drop_pct": -0.11
       },
       "scaling_law": {
-        "formula": "test_acc_mean = -18.7410 * retention^-0.0010 + 19.7073",
-        "r_squared": 0.1116
+        "formula": "test_acc_mean = -21.6541 * retention^-0.0013 + 22.6217",
+        "r_squared": 0.0693
       }
     }
   },
   "best_method_per_budget": {
-    "50%": "intrinsic_dimensionality_twonn",
     "70%": "forgetting_events",
     "80%": "forgetting_events",
     "90%": "intrinsic_dimensionality_twonn"

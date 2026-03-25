@@ -6,10 +6,9 @@ Direction: higher is better
 
 --- Corr Integral ---
   Baseline (100% data): 0.8438
-  Scaling law: test_acc_mean = 514.0663 * retention^0.0003 + -513.2191
-  Scaling law R²: 0.9826
+  Scaling law: test_acc_mean = 0.1279 * retention^1.0334 + 0.7156
+  Scaling law R²: 0.9981
   Performance at each budget:
-       50% data → 0.7435 (88.1% of baseline, drop=11.9%)
        70% data → 0.8038 (95.3% of baseline, drop=4.7%)
        80% data → 0.8180 (96.9% of baseline, drop=3.1%)
        90% data → 0.8294 (98.3% of baseline, drop=1.7%)
@@ -18,10 +17,9 @@ Direction: higher is better
 
 --- Effective Rank ---
   Baseline (100% data): 0.8433
-  Scaling law: test_acc_mean = 267.4125 * retention^0.0005 + -266.5671
-  Scaling law R²: 0.9934
+  Scaling law: test_acc_mean = 191.4551 * retention^0.0007 + -190.6104
+  Scaling law R²: 0.9732
   Performance at each budget:
-       50% data → 0.7434 (88.2% of baseline, drop=11.8%)
        70% data → 0.7913 (93.8% of baseline, drop=6.2%)
        80% data → 0.8184 (97.0% of baseline, drop=3.0%)
        90% data → 0.8291 (98.3% of baseline, drop=1.7%)
@@ -30,10 +28,9 @@ Direction: higher is better
 
 --- Forgetting Events ---
   Baseline (100% data): 0.8418
-  Scaling law: test_acc_mean = 514.0823 * retention^0.0003 + -513.2201
-  Scaling law R²: 0.8613
+  Scaling law: test_acc_mean = 77.2971 * retention^0.0007 + -76.4519
+  Scaling law R²: 0.8319
   Performance at each budget:
-       50% data → 0.7216 (85.7% of baseline, drop=14.3%)
        70% data → 0.8226 (97.7% of baseline, drop=2.3%)
        80% data → 0.8366 (99.4% of baseline, drop=0.6%)
        90% data → 0.8424 (100.1% of baseline, drop=-0.1%)
@@ -42,10 +39,9 @@ Direction: higher is better
 
 --- Intrinsic Dimensionality Twonn ---
   Baseline (100% data): 0.8373
-  Scaling law: test_acc_mean = 492.5526 * retention^0.0003 + -491.7042
-  Scaling law R²: 0.9384
+  Scaling law: test_acc_mean = 102.7251 * retention^0.0008 + -101.8851
+  Scaling law R²: 0.9505
   Performance at each budget:
-       50% data → 0.7428 (88.7% of baseline, drop=11.3%)
        70% data → 0.8098 (96.7% of baseline, drop=3.3%)
        80% data → 0.8240 (98.4% of baseline, drop=1.6%)
        90% data → 0.8347 (99.7% of baseline, drop=0.3%)
@@ -54,10 +50,9 @@ Direction: higher is better
 
 --- Random ---
   Baseline (100% data): 0.8450
-  Scaling law: test_acc_mean = -208.9569 * retention^-0.0003 + 209.7962
-  Scaling law R²: 0.9407
+  Scaling law: test_acc_mean = -70.5392 * retention^-0.0013 + 71.3819
+  Scaling law R²: 0.9537
   Performance at each budget:
-       50% data → 0.7944 (94.0% of baseline, drop=6.0%)
        70% data → 0.8089 (95.7% of baseline, drop=4.3%)
        80% data → 0.8240 (97.5% of baseline, drop=2.5%)
        90% data → 0.8283 (98.0% of baseline, drop=2.0%)
@@ -65,7 +60,6 @@ Direction: higher is better
   Most aggressive safe budget (<2% drop): 90% data (drop=2.0%)
 
 --- Best Method per Budget ---
-  50% retention → Random
   70% retention → Forgetting Events
   80% retention → Forgetting Events
   90% retention → Forgetting Events

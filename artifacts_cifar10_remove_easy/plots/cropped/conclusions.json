@@ -4,12 +4,6 @@
       "baseline_value": 0.8438000082969666,
       "budget_analysis": [
         {
-          "retention_pct": 50.0,
-          "metric_value": 0.7435333331425985,
-          "relative_to_baseline_pct": 88.12,
-          "drop_pct": 11.88
-        },
-        {
           "retention_pct": 70.0,
           "metric_value": 0.8038000067075094,
           "relative_to_baseline_pct": 95.26,
@@ -41,19 +35,13 @@
         "drop_pct": 1.7
       },
       "scaling_law": {
-        "formula": "test_acc_mean = 514.0663 * retention^0.0003 + -513.2191",
-        "r_squared": 0.9826
+        "formula": "test_acc_mean = 0.1279 * retention^1.0334 + 0.7156",
+        "r_squared": 0.9981
       }
     },
     "effective_rank": {
       "baseline_value": 0.8432666858037313,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 0.7433666586875916,
-          "relative_to_baseline_pct": 88.15,
-          "drop_pct": 11.85
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 0.7913333376248678,
@@ -86,19 +74,13 @@
         "drop_pct": 1.68
       },
       "scaling_law": {
-        "formula": "test_acc_mean = 267.4125 * retention^0.0005 + -266.5671",
-        "r_squared": 0.9934
+        "formula": "test_acc_mean = 191.4551 * retention^0.0007 + -190.6104",
+        "r_squared": 0.9732
       }
     },
     "forgetting_events": {
       "baseline_value": 0.8417999744415283,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 0.7216333349545797,
-          "relative_to_baseline_pct": 85.73,
-          "drop_pct": 14.27
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 0.8226000070571899,
@@ -131,19 +113,13 @@
         "drop_pct": 0.62
       },
       "scaling_law": {
-        "formula": "test_acc_mean = 514.0823 * retention^0.0003 + -513.2201",
-        "r_squared": 0.8613
+        "formula": "test_acc_mean = 77.2971 * retention^0.0007 + -76.4519",
+        "r_squared": 0.8319
       }
     },
     "intrinsic_dimensionality_twonn": {
       "baseline_value": 0.8372666637102762,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 0.7427666584650675,
-          "relative_to_baseline_pct": 88.71,
-          "drop_pct": 11.29
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 0.8097999890645345,
@@ -176,19 +152,13 @@
         "drop_pct": 1.58
       },
       "scaling_law": {
-        "formula": "test_acc_mean = 492.5526 * retention^0.0003 + -491.7042",
-        "r_squared": 0.9384
+        "formula": "test_acc_mean = 102.7251 * retention^0.0008 + -101.8851",
+        "r_squared": 0.9505
       }
     },
     "random": {
       "baseline_value": 0.8450000087420145,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 0.7944333354632059,
-          "relative_to_baseline_pct": 94.02,
-          "drop_pct": 5.98
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 0.8089333375295004,
@@ -221,13 +191,12 @@
         "drop_pct": 1.98
       },
       "scaling_law": {
-        "formula": "test_acc_mean = -208.9569 * retention^-0.0003 + 209.7962",
-        "r_squared": 0.9407
+        "formula": "test_acc_mean = -70.5392 * retention^-0.0013 + 71.3819",
+        "r_squared": 0.9537
       }
     }
   },
   "best_method_per_budget": {
-    "50%": "random",
     "70%": "forgetting_events",
     "80%": "forgetting_events",
     "90%": "forgetting_events"

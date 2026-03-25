@@ -6,10 +6,9 @@ Direction: lower is better
 
 --- Corr Integral ---
   Baseline (100% data): 2.6297
-  Scaling law: val_loss_mean = 558.0592 * retention^-0.0005 + -555.3447
-  Scaling law R²: 0.2138
+  Scaling law: val_loss_mean = -2165.8798 * retention^0.0006 + 2168.4615
+  Scaling law R²: 0.9393
   Performance at each budget:
-       50% data → 2.7907 (94.2% of baseline, drop=6.1%)
        70% data → 3.0694 (85.7% of baseline, drop=16.7%)
        80% data → 2.8290 (93.0% of baseline, drop=7.6%)
        90% data → 2.6655 (98.7% of baseline, drop=1.4%)
@@ -18,10 +17,9 @@ Direction: lower is better
 
 --- Effective Rank ---
   Baseline (100% data): 2.7642
-  Scaling law: val_loss_mean = -406.3958 * retention^0.0004 + 409.1443
-  Scaling law R²: 0.5861
+  Scaling law: val_loss_mean = 86.6809 * retention^0.0006 + -83.9017
+  Scaling law R²: 0.1122
   Performance at each budget:
-       50% data → 2.8991 (95.3% of baseline, drop=4.9%)
        70% data → 2.7418 (100.8% of baseline, drop=-0.8%)
        80% data → 2.7960 (98.9% of baseline, drop=1.1%)
        90% data → 2.7804 (99.4% of baseline, drop=0.6%)
@@ -30,10 +28,9 @@ Direction: lower is better
 
 --- Heuristic Filtering ---
   Baseline (100% data): 2.5444
-  Scaling law: val_loss_mean = 1225.8508 * retention^-0.0006 + -1223.2599
-  Scaling law R²: 0.8626
+  Scaling law: val_loss_mean = 813.2395 * retention^-0.0011 + -810.6716
+  Scaling law R²: 0.7275
   Performance at each budget:
-       50% data → 3.0533 (83.3% of baseline, drop=20.0%)
        70% data → 2.8114 (90.5% of baseline, drop=10.5%)
        80% data → 2.8802 (88.3% of baseline, drop=13.2%)
        90% data → 2.6295 (96.8% of baseline, drop=3.4%)
@@ -42,22 +39,20 @@ Direction: lower is better
 
 --- Intrinsic Dimensionality Twonn ---
   Baseline (100% data): 2.8215
-  Scaling law: val_loss_mean = 350.7680 * retention^-0.0009 + -348.0393
-  Scaling law R²: 0.1866
+  Scaling law: val_loss_mean = -1140.3836 * retention^0.0008 + 1143.0344
+  Scaling law R²: 0.382
   Performance at each budget:
-       50% data → 2.8633 (98.5% of baseline, drop=1.5%)
        70% data → 3.0607 (92.2% of baseline, drop=8.5%)
        80% data → 2.7870 (101.2% of baseline, drop=-1.2%)
        90% data → 2.5313 (111.5% of baseline, drop=-10.3%)
       100% data → 2.8215 (100.0% of baseline, drop=0.0%)
-  Most aggressive safe budget (<2% drop): 50% data (drop=1.5%)
+  Most aggressive safe budget (<2% drop): 80% data (drop=-1.2%)
 
 --- Llm Classifier ---
   Baseline (100% data): 2.7266
-  Scaling law: val_loss_mean = 493.3422 * retention^-0.0005 + -490.6267
-  Scaling law R²: 0.3439
+  Scaling law: val_loss_mean = -0.8819 * retention^0.6125 + 3.5641
+  Scaling law R²: 0.3404
   Performance at each budget:
-       50% data → 2.8647 (95.2% of baseline, drop=5.1%)
        70% data → 2.8194 (96.7% of baseline, drop=3.4%)
        80% data → 2.9110 (93.7% of baseline, drop=6.8%)
        90% data → 2.6128 (104.3% of baseline, drop=-4.2%)
@@ -66,10 +61,9 @@ Direction: lower is better
 
 --- Perplexity Filtering ---
   Baseline (100% data): 2.5444
-  Scaling law: val_loss_mean = 901.1498 * retention^-0.0007 + -898.5488
-  Scaling law R²: 0.7364
+  Scaling law: val_loss_mean = 958.2814 * retention^-0.0007 + -955.6979
+  Scaling law R²: 0.5137
   Performance at each budget:
-       50% data → 2.9928 (85.0% of baseline, drop=17.6%)
        70% data → 2.7500 (92.5% of baseline, drop=8.1%)
        80% data → 2.8991 (87.8% of baseline, drop=13.9%)
        90% data → 2.6318 (96.7% of baseline, drop=3.4%)
@@ -78,10 +72,9 @@ Direction: lower is better
 
 --- Random ---
   Baseline (100% data): 2.8082
-  Scaling law: val_loss_mean = -515.8550 * retention^0.0009 + 518.5766
-  Scaling law R²: 0.7002
+  Scaling law: val_loss_mean = -420.8533 * retention^0.0011 + 423.5788
+  Scaling law R²: 0.3372
   Performance at each budget:
-       50% data → 3.0611 (91.7% of baseline, drop=9.0%)
        70% data → 2.9020 (96.8% of baseline, drop=3.3%)
        80% data → 2.8716 (97.8% of baseline, drop=2.3%)
        90% data → 2.6325 (106.7% of baseline, drop=-6.3%)
@@ -90,10 +83,9 @@ Direction: lower is better
 
 --- Semantic Dedup ---
   Baseline (100% data): 2.6024
-  Scaling law: val_loss_mean = -114.2749 * retention^0.0059 + 116.8634
-  Scaling law R²: 0.7375
+  Scaling law: val_loss_mean = 385.0100 * retention^-0.0015 + -382.4099
+  Scaling law R²: 0.3492
   Performance at each budget:
-       50% data → 3.0654 (84.9% of baseline, drop=17.8%)
        70% data → 2.7297 (95.3% of baseline, drop=4.9%)
        80% data → 2.9050 (89.6% of baseline, drop=11.6%)
        90% data → 2.5666 (101.4% of baseline, drop=-1.4%)
@@ -101,7 +93,6 @@ Direction: lower is better
   Most aggressive safe budget (<2% drop): 90% data (drop=-1.4%)
 
 --- Best Method per Budget ---
-  50% retention → Corr Integral
   70% retention → Semantic Dedup
   80% retention → Intrinsic Dimensionality Twonn
   90% retention → Intrinsic Dimensionality Twonn

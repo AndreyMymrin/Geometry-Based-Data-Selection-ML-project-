@@ -4,12 +4,6 @@
       "baseline_value": 2.7996400197347007,
       "budget_analysis": [
         {
-          "retention_pct": 50.0,
-          "metric_value": 3.0948758125305176,
-          "relative_to_baseline_pct": 90.46,
-          "drop_pct": 10.55
-        },
-        {
           "retention_pct": 70.0,
           "metric_value": 2.9701969623565674,
           "relative_to_baseline_pct": 94.26,
@@ -41,19 +35,13 @@
         "drop_pct": -6.15
       },
       "scaling_law": {
-        "formula": "val_loss_mean = 0.0683 * retention^-2.6326 + 2.6800",
-        "r_squared": 0.6378
+        "formula": "val_loss_mean = -485.3089 * retention^0.0007 + 488.0482",
+        "r_squared": 0.1324
       }
     },
     "effective_rank": {
       "baseline_value": 2.824125051498413,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 2.819529930750529,
-          "relative_to_baseline_pct": 100.16,
-          "drop_pct": -0.16
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 2.8029709657033286,
@@ -80,25 +68,19 @@
         }
       ],
       "most_aggressive_safe_budget": {
-        "retention_pct": 50.0,
-        "metric_value": 2.819529930750529,
-        "relative_to_baseline_pct": 100.16,
-        "drop_pct": -0.16
+        "retention_pct": 70.0,
+        "metric_value": 2.8029709657033286,
+        "relative_to_baseline_pct": 100.75,
+        "drop_pct": -0.75
       },
       "scaling_law": {
-        "formula": "val_loss_mean = -151.4552 * retention^0.0007 + 154.1965",
-        "r_squared": 0.1239
+        "formula": "val_loss_mean = -129.2983 * retention^0.0009 + 132.0393",
+        "r_squared": 0.0348
       }
     },
     "heuristic_filtering": {
       "baseline_value": 2.800646940867106,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 2.870706876118978,
-          "relative_to_baseline_pct": 97.56,
-          "drop_pct": 2.5
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 3.058537721633911,
@@ -131,19 +113,13 @@
         "drop_pct": -5.53
       },
       "scaling_law": {
-        "formula": "val_loss_mean = 239.1841 * retention^-0.0010 + -236.4258",
-        "r_squared": 0.1677
+        "formula": "val_loss_mean = -719.2964 * retention^0.0009 + 722.0025",
+        "r_squared": 0.288
       }
     },
     "intrinsic_dimensionality_twonn": {
       "baseline_value": 2.7371768156687417,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 3.071505149205526,
-          "relative_to_baseline_pct": 89.12,
-          "drop_pct": 12.21
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 2.9210331439971924,
@@ -176,19 +152,13 @@
         "drop_pct": -7.72
       },
       "scaling_law": {
-        "formula": "val_loss_mean = -2.4672 * retention^0.2853 + 5.1103",
-        "r_squared": 0.693
+        "formula": "val_loss_mean = -596.1271 * retention^0.0013 + 598.7572",
+        "r_squared": 0.4572
       }
     },
     "llm_classifier": {
       "baseline_value": 2.7404062747955322,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 3.1195127964019775,
-          "relative_to_baseline_pct": 87.85,
-          "drop_pct": 13.83
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 2.899978001912435,
@@ -221,19 +191,13 @@
         "drop_pct": 1.62
       },
       "scaling_law": {
-        "formula": "val_loss_mean = -1038.2503 * retention^0.0005 + 1040.9695",
-        "r_squared": 0.9444
+        "formula": "val_loss_mean = 0.0066 * retention^-8.6224 + 2.7546",
+        "r_squared": 0.8658
       }
     },
     "perplexity_filtering": {
       "baseline_value": 2.764231284459432,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 3.0895327726999917,
-          "relative_to_baseline_pct": 89.47,
-          "drop_pct": 11.77
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 2.747159163157145,
@@ -266,19 +230,13 @@
         "drop_pct": -0.62
       },
       "scaling_law": {
-        "formula": "val_loss_mean = 0.0000 * retention^-38.5531 + 2.8026",
-        "r_squared": 0.8333
+        "formula": "val_loss_mean = 45.3008 * retention^-0.0003 + -42.5008",
+        "r_squared": 0.0012
       }
     },
     "random": {
       "baseline_value": 2.518796523412069,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 3.012742837270101,
-          "relative_to_baseline_pct": 83.6,
-          "drop_pct": 19.61
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 2.87543257077535,
@@ -311,19 +269,13 @@
         "drop_pct": 0.0
       },
       "scaling_law": {
-        "formula": "val_loss_mean = -0.9686 * retention^0.9781 + 3.5091",
-        "r_squared": 0.8719
+        "formula": "val_loss_mean = 0.0435 * retention^-5.7252 + 2.5306",
+        "r_squared": 0.7425
       }
     },
     "semantic_dedup": {
       "baseline_value": 2.5187100569407144,
       "budget_analysis": [
-        {
-          "retention_pct": 50.0,
-          "metric_value": 3.082641124725342,
-          "relative_to_baseline_pct": 81.71,
-          "drop_pct": 22.39
-        },
         {
           "retention_pct": 70.0,
           "metric_value": 2.9181412855784097,
@@ -356,13 +308,12 @@
         "drop_pct": 0.0
       },
       "scaling_law": {
-        "formula": "val_loss_mean = -1.3277 * retention^0.6767 + 3.9124",
-        "r_squared": 0.6835
+        "formula": "val_loss_mean = -0.2752 * retention^206.8187 + 2.7939",
+        "r_squared": 0.5052
       }
     }
   },
   "best_method_per_budget": {
-    "50%": "effective_rank",
     "70%": "perplexity_filtering",
     "80%": "semantic_dedup",
     "90%": "intrinsic_dimensionality_twonn"
