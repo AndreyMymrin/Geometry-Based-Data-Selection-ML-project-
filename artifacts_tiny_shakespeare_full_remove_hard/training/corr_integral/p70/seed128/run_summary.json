@@ -1,0 +1,8 @@
+{
+  "method": "corr_integral",
+  "percent_removed": 70,
+  "seed": 128,
+  "best_val_acc": NaN,
+  "best_val_loss": 1.596941590309143,
+  "test_acc": NaN
+}
