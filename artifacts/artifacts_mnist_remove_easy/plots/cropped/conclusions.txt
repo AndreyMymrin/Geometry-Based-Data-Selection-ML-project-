@@ -1,0 +1,66 @@
+======================================================================
+QUANTITATIVE CONCLUSIONS — DATA EFFICIENCY ANALYSIS
+======================================================================
+Metric: test_acc_mean
+Direction: higher is better
+
+--- Corr Integral ---
+  Baseline (100% data): 0.9737
+  Scaling law: test_acc_mean = 0.0464 * retention^6.5432 + 0.9329
+  Scaling law R²: 0.292
+  Performance at each budget:
+       70% data → 0.9560 (98.2% of baseline, drop=1.8%)
+       80% data → 0.9053 (93.0% of baseline, drop=7.0%)
+       90% data → 0.9816 (100.8% of baseline, drop=-0.8%)
+      100% data → 0.9737 (100.0% of baseline, drop=0.0%)
+  Most aggressive safe budget (<2% drop): 70% data (drop=1.8%)
+
+--- Effective Rank ---
+  Baseline (100% data): 0.9792
+  Scaling law: test_acc_mean = 0.3993 * retention^1.2382 + 0.5916
+  Scaling law R²: 0.814
+  Performance at each budget:
+       70% data → 0.8594 (87.8% of baseline, drop=12.2%)
+       80% data → 0.8608 (87.9% of baseline, drop=12.1%)
+       90% data → 0.9765 (99.7% of baseline, drop=0.3%)
+      100% data → 0.9792 (100.0% of baseline, drop=0.0%)
+  Most aggressive safe budget (<2% drop): 90% data (drop=0.3%)
+
+--- Forgetting Events ---
+  Baseline (100% data): 0.9774
+  Scaling law: test_acc_mean = 0.0133 * retention^10.9678 + 0.9651
+  Scaling law R²: 0.2576
+  Performance at each budget:
+       70% data → 0.9739 (99.6% of baseline, drop=0.4%)
+       80% data → 0.9523 (97.4% of baseline, drop=2.6%)
+       90% data → 0.9755 (99.8% of baseline, drop=0.2%)
+      100% data → 0.9774 (100.0% of baseline, drop=0.0%)
+  Most aggressive safe budget (<2% drop): 70% data (drop=0.4%)
+
+--- Intrinsic Dimensionality Twonn ---
+  Baseline (100% data): 0.9705
+  Scaling law: test_acc_mean = 0.0607 * retention^7.6467 + 0.9174
+  Scaling law R²: 0.2329
+  Performance at each budget:
+       70% data → 0.9534 (98.2% of baseline, drop=1.8%)
+       80% data → 0.8666 (89.3% of baseline, drop=10.7%)
+       90% data → 0.9818 (101.2% of baseline, drop=-1.2%)
+      100% data → 0.9705 (100.0% of baseline, drop=0.0%)
+  Most aggressive safe budget (<2% drop): 70% data (drop=1.8%)
+
+--- Random ---
+  Baseline (100% data): 0.9660
+  Scaling law: test_acc_mean = -21.6541 * retention^-0.0013 + 22.6217
+  Scaling law R²: 0.0693
+  Performance at each budget:
+       70% data → 0.9670 (100.1% of baseline, drop=-0.1%)
+       80% data → 0.9402 (97.3% of baseline, drop=2.7%)
+       90% data → 0.9782 (101.3% of baseline, drop=-1.3%)
+      100% data → 0.9660 (100.0% of baseline, drop=0.0%)
+  Most aggressive safe budget (<2% drop): 70% data (drop=-0.1%)
+
+--- Best Method per Budget ---
+  70% retention → Forgetting Events
+  80% retention → Forgetting Events
+  90% retention → Intrinsic Dimensionality Twonn
+======================================================================

@@ -1,0 +1,32 @@
+{
+  "subsets": [
+    {
+      "percent_removed": 0,
+      "path": "artifacts_mnist_remove_easy/subsets/forgetting_events/p00.json"
+    },
+    {
+      "percent_removed": 10,
+      "path": "artifacts_mnist_remove_easy/subsets/forgetting_events/p10.json"
+    },
+    {
+      "percent_removed": 20,
+      "path": "artifacts_mnist_remove_easy/subsets/forgetting_events/p20.json"
+    },
+    {
+      "percent_removed": 30,
+      "path": "artifacts_mnist_remove_easy/subsets/forgetting_events/p30.json"
+    },
+    {
+      "percent_removed": 50,
+      "path": "artifacts_mnist_remove_easy/subsets/forgetting_events/p50.json"
+    },
+    {
+      "percent_removed": 70,
+      "path": "artifacts_mnist_remove_easy/subsets/forgetting_events/p70.json"
+    },
+    {
+      "percent_removed": 90,
+      "path": "artifacts_mnist_remove_easy/subsets/forgetting_events/p90.json"
+    }
+  ]
+}

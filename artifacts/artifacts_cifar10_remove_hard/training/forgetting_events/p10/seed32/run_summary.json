@@ -1,0 +1,8 @@
+{
+  "method": "forgetting_events",
+  "percent_removed": 10,
+  "seed": 32,
+  "best_val_acc": 0.8366000056266785,
+  "best_val_loss": 0.6149809956550598,
+  "test_acc": 0.8306000232696533
+}

@@ -1,0 +1,32 @@
+{
+  "subsets": [
+    {
+      "percent_removed": 0,
+      "path": "artifacts_cifar10_remove_hard/subsets/intrinsic_dimensionality_twonn/p00.json"
+    },
+    {
+      "percent_removed": 10,
+      "path": "artifacts_cifar10_remove_hard/subsets/intrinsic_dimensionality_twonn/p10.json"
+    },
+    {
+      "percent_removed": 20,
+      "path": "artifacts_cifar10_remove_hard/subsets/intrinsic_dimensionality_twonn/p20.json"
+    },
+    {
+      "percent_removed": 30,
+      "path": "artifacts_cifar10_remove_hard/subsets/intrinsic_dimensionality_twonn/p30.json"
+    },
+    {
+      "percent_removed": 50,
+      "path": "artifacts_cifar10_remove_hard/subsets/intrinsic_dimensionality_twonn/p50.json"
+    },
+    {
+      "percent_removed": 70,
+      "path": "artifacts_cifar10_remove_hard/subsets/intrinsic_dimensionality_twonn/p70.json"
+    },
+    {
+      "percent_removed": 90,
+      "path": "artifacts_cifar10_remove_hard/subsets/intrinsic_dimensionality_twonn/p90.json"
+    }
+  ]
+}

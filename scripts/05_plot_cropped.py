@@ -31,7 +31,7 @@ def main() -> None:
         "--percentiles",
         type=int,
         nargs="+",
-        default=[0, 10, 20, 30, 50],
+        default=[0, 10, 20, 30],
         help="Percent-removed values to include (e.g. 0 10 20 30 50).",
     )
     args = parser.parse_args()
