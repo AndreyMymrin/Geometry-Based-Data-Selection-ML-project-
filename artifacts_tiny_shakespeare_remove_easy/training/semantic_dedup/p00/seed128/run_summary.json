@@ -1,8 +1,0 @@
-{
-  "method": "semantic_dedup",
-  "percent_removed": 0,
-  "seed": 128,
-  "best_val_acc": NaN,
-  "best_val_loss": 2.4534499645233154,
-  "test_acc": NaN
-}

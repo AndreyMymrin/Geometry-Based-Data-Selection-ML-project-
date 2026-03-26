@@ -1,8 +1,0 @@
-{
-  "method": "random",
-  "percent_removed": 70,
-  "seed": 64,
-  "best_val_acc": 0.7447999715805054,
-  "best_val_loss": 0.8677784204483032,
-  "test_acc": 0.7195000052452087
-}

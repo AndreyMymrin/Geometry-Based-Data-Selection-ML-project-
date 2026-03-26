@@ -1,6 +1,0 @@
-{
-  "method": "random",
-  "dataset": "tiny_shakespeare",
-  "num_samples": 3906,
-  "config_path": "configs/experiment/tiny_shakespeare_remove_easy.yaml"
-}

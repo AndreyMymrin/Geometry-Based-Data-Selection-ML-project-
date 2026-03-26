@@ -1,6 +1,0 @@
-{
-  "method": "forgetting_events",
-  "dataset": "mnist",
-  "num_samples": 50000,
-  "config_path": "configs/experiment/mnist_remove_easy.yaml"
-}

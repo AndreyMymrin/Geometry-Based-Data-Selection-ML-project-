@@ -1,8 +1,0 @@
-{
-  "method": "effective_rank",
-  "percent_removed": 10,
-  "seed": 64,
-  "best_val_acc": NaN,
-  "best_val_loss": 2.4975643157958984,
-  "test_acc": NaN
-}
