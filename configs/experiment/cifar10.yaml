@@ -1,0 +1,79 @@
+project:
+  name: geometry-data-selection-cifar10
+
+paths:
+  data_dir: data
+  artifacts_dir: artifacts_cifar10_clean
+
+dataset:
+  name: cifar10
+  split_seed: 42
+  train_size: 40000
+  val_size: 10000
+  num_classes: 10
+  in_channels: 3
+  image_size: 32
+  # Toneva et al. (2019): CIFAR-10 uses cutout + RandomCrop + RandomHFlip
+  augment: true
+
+scoring:
+  methods:
+    - forgetting_events
+    - effective_rank
+    - intrinsic_dimensionality_twonn
+    - corr_integral
+    - random
+  random_seed: 777
+  # Toneva et al. (2019): ResNet-18, SGD Nesterov, lr=0.1, momentum=0.9
+  # LR divided by 5 at epochs 60, 120, 160 (same schedule as training)
+  model: resnet18
+  num_epochs: 200
+  seeds:
+    - 2
+    - 4
+    - 8
+  lr: 0.1
+  momentum: 0.9
+  nesterov: true
+  scheduler: multistep
+  milestones: [60, 120, 160]
+  gamma: 0.2
+  weight_decay: 0.0001
+  batch_size: 512
+  num_workers: 8
+
+subsets:
+  # Retention budgets: 100%, 70%, 30%, 10% of training data
+  percentiles: [0, 30, 70, 90]
+  # "remove_easy" = remove low-score samples first (keep hard/complex)
+  # "remove_hard" = remove high-score samples first (keep easy/clean)
+  direction: remove_easy
+
+training:
+  # Toneva et al. (2019): ResNet-18, SGD Nesterov, lr=0.1, momentum=0.9
+  # LR divided by 5 at epochs 60, 120, 160
+  model: resnet18
+  seeds:
+    - 32
+    - 64
+    - 128
+  max_epochs: 200
+  early_stopping_patience: 20
+  batch_size: 512
+  num_workers: 8
+  lr: 0.1
+  weight_decay: 0.0001
+  optimizer: sgd
+  momentum: 0.9
+  nesterov: true
+  scheduler: multistep
+  milestones: [60, 120, 160]
+  gamma: 0.2  # divide by 5
+  accelerator: gpu
+  devices: 1
+  deterministic: warn
+  save_checkpoints: false
+
+analysis:
+  primary_metric: accuracy
+  plot_dpi: 150

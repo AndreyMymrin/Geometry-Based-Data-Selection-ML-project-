@@ -14,7 +14,7 @@ if str(SRC_DIR) not in sys.path:
 
 from gds.common.config import load_config
 from gds.common.io import read_json, write_json
-from gds.data.mnist import load_or_create_split
+from gds.data.datasets import load_or_create_split
 from gds.training.runner import run_training
 
 
@@ -48,12 +48,35 @@ def main() -> None:
     data_dir = Path(paths_cfg["data_dir"])
     method = args.method
 
-    split = load_or_create_split(
-        data_dir=data_dir,
-        split_file=artifacts_dir / "splits" / f"mnist_split_seed{int(dataset_cfg['split_seed'])}.json",
-        val_size=int(dataset_cfg["val_size"]),
-        seed=int(dataset_cfg["split_seed"]),
-    )
+    dataset_name = dataset_cfg.get("name", "mnist")
+    is_text = dataset_cfg.get("type", "image") == "text"
+    in_channels = int(dataset_cfg.get("in_channels", 1))
+    num_classes = int(dataset_cfg.get("num_classes", 10))
+
+    # Load or create train/val split
+    vocab_size = None
+    if is_text:
+        from gds.data.tiny_shakespeare import load_or_create_text_split
+        block_size = int(dataset_cfg.get("block_size", 128))
+        val_fraction = float(dataset_cfg.get("val_fraction", 0.1))
+        split_file = artifacts_dir / "splits" / f"tiny_shakespeare_split_seed{int(dataset_cfg['split_seed'])}.json"
+        split, chunks, stoi, itos = load_or_create_text_split(
+            data_dir=data_dir,
+            split_file=split_file,
+            block_size=block_size,
+            val_fraction=val_fraction,
+            seed=int(dataset_cfg["split_seed"]),
+        )
+        vocab_size = len(stoi)
+    else:
+        split_file = artifacts_dir / "splits" / f"{dataset_name}_split_seed{int(dataset_cfg['split_seed'])}.json"
+        split = load_or_create_split(
+            data_dir=data_dir,
+            split_file=split_file,
+            dataset_name=dataset_name,
+            val_size=int(dataset_cfg["val_size"]),
+            seed=int(dataset_cfg["split_seed"]),
+        )
 
     subsets_dir = artifacts_dir / "subsets" / method
     subset_files = sorted(subsets_dir.glob("p*.json"))
@@ -71,18 +94,21 @@ def main() -> None:
             leave=False,
         ):
             run_dir = artifacts_dir / "training" / method / f"p{percent_removed:02d}" / f"seed{int(seed)}"
+            # Parse milestones (list of ints from yaml)
+            milestones_raw = training_cfg.get("milestones")
+            milestones = [int(m) for m in milestones_raw] if milestones_raw else None
+
             result = run_training(
                 data_dir=data_dir,
                 run_dir=run_dir,
                 train_ids=train_ids,
                 val_ids=split.val_ids,
                 seed=int(seed),
-                model_name=str(training_cfg.get("model", "resnet18")),
+                model_name=str(training_cfg.get("model", "simple_cnn")),
                 max_epochs=int(training_cfg["max_epochs"]),
                 patience=int(training_cfg["early_stopping_patience"]),
                 batch_size=int(training_cfg["batch_size"]),
                 num_workers=int(training_cfg["num_workers"]),
-                image_size=int(dataset_cfg["image_size"]),
                 lr=float(training_cfg["lr"]),
                 weight_decay=float(training_cfg["weight_decay"]),
                 accelerator=str(training_cfg["accelerator"]),
@@ -90,6 +116,25 @@ def main() -> None:
                 deterministic=_parse_deterministic(training_cfg.get("deterministic", "warn")),
                 method=method,
                 percent_removed=percent_removed,
+                dataset_name=dataset_name,
+                in_channels=in_channels,
+                num_classes=num_classes,
+                save_checkpoints=bool(training_cfg.get("save_checkpoints", False)),
+                optimizer=str(training_cfg.get("optimizer", "adamw")),
+                momentum=float(training_cfg.get("momentum", 0.9)),
+                nesterov=bool(training_cfg.get("nesterov", False)),
+                scheduler=str(training_cfg.get("scheduler", "cosine")),
+                milestones=milestones,
+                gamma=float(training_cfg.get("gamma", 0.2)),
+                augment=bool(dataset_cfg.get("augment", False)),
+                gradient_clip_val=float(training_cfg["gradient_clip_val"]) if training_cfg.get("gradient_clip_val") else None,
+                is_text=is_text,
+                block_size=int(dataset_cfg.get("block_size", 128)),
+                vocab_size=vocab_size,
+                min_lr=float(training_cfg.get("min_lr", 1e-4)),
+                beta1=float(training_cfg.get("beta1", 0.9)),
+                beta2=float(training_cfg.get("beta2", 0.99)),
+                warmup_fraction=float(training_cfg.get("warmup_fraction", 0.02)),
             )
             summary_payload = result.__dict__.copy()
             write_json(run_dir / "run_summary.json", summary_payload)

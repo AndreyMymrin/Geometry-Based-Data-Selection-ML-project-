@@ -1,7 +1,0 @@
-name: mnist
-split_seed: 42
-train_size: 50000
-val_size: 10000
-num_classes: 10
-image_size: 224
-

@@ -19,8 +19,23 @@ def build_subsets_from_ranking(
     ranking_df: pd.DataFrame,
     method: str,
     percentiles: list[int],
+    direction: str = "remove_easy",
 ) -> list[SubsetSpec]:
-    df = ranking_df.sort_values("rank", kind="stable").reset_index(drop=True)
+    """Build retained-ID subsets at each pruning level.
+
+    Parameters
+    ----------
+    direction : str
+        ``"remove_easy"``  – remove low-score (easy/simple) samples first,
+                             keep high-score (hard/complex).  Default.
+        ``"remove_hard"``  – remove high-score (hard/complex) samples first,
+                             keep low-score (easy/clean).
+    """
+    if direction not in ("remove_easy", "remove_hard"):
+        raise ValueError(f"direction must be 'remove_easy' or 'remove_hard', got '{direction}'")
+
+    ascending = direction == "remove_easy"
+    df = ranking_df.sort_values("rank", ascending=ascending, kind="stable").reset_index(drop=True)
     sample_ids = df["sample_id"].astype(int).tolist()
     n = len(sample_ids)
     subsets: list[SubsetSpec] = []

@@ -15,7 +15,7 @@ pytestmark = pytest.mark.skipif(
 def test_plot_generation(tmp_path: Path) -> None:
     summary_df = pd.DataFrame(
         {
-            "method": ["error_rate_ensemble", "error_rate_ensemble", "random", "random"],
+            "method": ["forgetting_events", "forgetting_events", "random", "random"],
             "percent_removed": [0, 5, 0, 5],
             "val_acc_mean": [0.90, 0.91, 0.89, 0.88],
             "val_acc_std": [0.01, 0.02, 0.01, 0.03],

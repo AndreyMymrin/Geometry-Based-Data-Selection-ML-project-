@@ -1,0 +1,6 @@
+{
+  "method": "effective_rank",
+  "dataset": "cifar10",
+  "num_samples": 40000,
+  "config_path": "configs/experiment/cifar10_remove_easy.yaml"
+}
